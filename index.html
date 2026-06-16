@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blossom">
+<head>
+  	<link rel="manifest" href="manifest.json">
+		<meta name="theme-color" content="#1e1e2e">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sakhi - Smart Period & Health Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --bg-main: #FFF5F7; --bg-card: #FFFFFF; --text-main: #2D3748; --text-muted: #718096;
+            --accent-color: #FF5A8D; --accent-light: #FFE4EC; --accent-dark: #D53F8C; --nav-bg: #FFFFFF;
+            --risk-low: #10B981; --risk-med: #F59E0B; --risk-high: #EF4444; --risk-max: #9333EA;
+            --card-border: rgba(255, 90, 141, 0.15);
+        }
+        [data-theme="ocean"] {
+            --bg-main: #F0F9FF; --bg-card: #FFFFFF; --text-main: #1A365D; --text-muted: #4A5568;
+            --accent-color: #0ea5e9; --accent-light: #e0f2fe; --accent-dark: #0369a1; --card-border: rgba(14, 165, 233, 0.15);
+        }
+        [data-theme="mint"] {
+            --bg-main: #F0FDF4; --bg-card: #FFFFFF; --text-main: #14532D; --text-muted: #475569;
+            --accent-color: #10b981; --accent-light: #d1fae5; --accent-dark: #047857; --card-border: rgba(16, 185, 129, 0.15);
+        }
+        [data-theme="lavender"] {
+            --bg-main: #FAF5FF; --bg-card: #FFFFFF; --text-main: #3B0764; --text-muted: #475569;
+            --accent-color: #a855f7; --accent-light: #f3e8ff; --accent-dark: #7e22ce; --card-border: rgba(168, 85, 247, 0.15);
+        }
+        [data-theme="midnight"] {
+            --bg-main: #0F172A; --bg-card: #1E293B; --text-main: #F1F5F9; --text-muted: #94A3B8;
+            --accent-color: #f43f5e; --accent-light: #4c1d24; --accent-dark: #be123c; --nav-bg: #1E293B;
+            --card-border: rgba(244, 63, 94, 0.3);
+        }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            transition: all 0.3s ease; padding-bottom: 70px;
+        }
+        .custom-card {
+            background-color: var(--bg-card); border-radius: 1rem;
+            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
+            padding: 1rem; margin-bottom: 1rem; border: 1px solid var(--card-border);
+        }
+        .btn-primary {
+            background-color: var(--accent-color); color: white; border-radius: 999px;
+            font-weight: 700; transition: all 0.2s ease; border: none; cursor: pointer;
+            box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.15);
+        }
+        .btn-primary:active { transform: scale(0.98); }
+        .input-field {
+            width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.5rem;
+            border: 1.5px solid var(--accent-light); background-color: var(--bg-main);
+            color: var(--text-main); margin-top: 0.25rem; font-size: 0.875rem;
+            outline: none; transition: border-color 0.2s ease;
+        }
+        .input-field:focus { border-color: var(--accent-color); }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; background-color: var(--nav-bg); display: flex;
+            justify-content: space-around; padding: 0.5rem;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05); z-index: 50;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+        .nav-item {
+            color: var(--text-muted); display: flex; flex-direction: column;
+            align-items: center; font-size: 0.65rem; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; flex: 1;
+        }
+        .nav-item.active { color: var(--accent-color); transform: scale(1.05); }
+        .nav-item i { font-size: 1.15rem; margin-bottom: 0.15rem; }
+
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        #toast {
+            position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150%);
+            background-color: var(--accent-dark); color: white; padding: 0.75rem 1.5rem;
+            border-radius: 99px; box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000; font-size: 0.875rem; font-weight: bold; display: flex; align-items: center; gap: 0.5rem;
+        }
+        #toast.show { transform: translate(-50%, 0); }
+
+        .progress-circle-container {
+            width: 240px; height: 240px; margin: 0 auto; position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .svg-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+        .progress-inner {
+            position: absolute; width: 160px; height: 160px; border-radius: 50%;
+            background-color: var(--bg-card); display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            box-shadow: inset 0px 4px 15px rgba(0,0,0,0.03), 0 0 20px rgba(0,0,0,0.05); z-index: 10;
+        }
+        
+        .pulse-btn {
+            animation: pulse-soft 2s infinite;
+        }
+        @keyframes pulse-soft {
+            0% { box-shadow: 0 0 0 0 rgba(255, 90, 141, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(255, 90, 141, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 90, 141, 0); }
+        }
+
+        .compact-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+
+        @media print {
+            body { background-color: #FFFFFF !important; color: #000000 !important; padding: 0 !important; font-size: 11pt; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .custom-card { box-shadow: none !important; border: 1px solid #E2E8F0 !important; padding: 1rem !important; margin-bottom: 1rem !important; page-break-inside: avoid; }
+            .tab-content { display: block !important; }
+            #home, #graphs, #settings, header, nav { display: none !important; }
+            #report { display: block !important; width: 100% !important; }
+            table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 9pt; }
+            th, td { border: 1px solid #CBD5E1; padding: 6px; text-align: left; }
+            th { background-color: #F8FAFC; font-weight: bold; }
+            .cycle-report-group { margin-bottom: 2rem; page-break-inside: avoid; border: 1px solid #CBD5E1; border-radius: 8px; overflow: hidden; }
+            .cycle-report-header { font-size: 11pt; font-weight: bold; background: #F1F5F9; padding: 8px; border-bottom: 1px solid #CBD5E1; }
+            .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: #F8FAFC; padding: 8px; border-bottom: 1px solid #CBD5E1; font-size: 9pt; text-align: center; }
+            .summary-grid strong { display: block; font-size: 10pt; color: #000; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="max-w-md mx-auto relative min-h-screen px-3 sm:max-w-lg">
+
+    <header class="py-3 flex justify-between items-center no-print sticky top-0 z-40 bg-opacity-90 backdrop-blur-md" style="background-color: var(--bg-main);">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm shadow-sm" style="background-color: var(--accent-color)">
+                <i class="fa-solid fa-droplet"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-tight leading-none" style="color: var(--accent-color)">Sakhi</h1>
+                <p class="text-[9px] uppercase tracking-wider font-bold" style="color: var(--text-muted)">Smart Tracker</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="toggleQuickTheme()" class="w-8 h-8 rounded-full flex items-center justify-center bg-white border shadow-sm text-xs" style="color: var(--accent-color); border-color: var(--accent-light)" title="Change Theme">
+                <i class="fa-solid fa-palette"></i>
+            </button>
+            <button onclick="openAuthModal()" id="authIconBtn" class="w-8 h-8 rounded-full flex items-center justify-center bg-white border shadow-sm text-xs transition-colors" style="color: var(--accent-color); border-color: var(--accent-light)" title="Account / Sync">
+                <i class="fa-regular fa-user"></i>
+            </button>
+        </div>
+    </header>
+
+    <div id="toast" class="no-print">
+        <i class="fa-solid fa-circle-info"></i> <span id="toastText">Message</span>
+    </div>
+
+    <div id="authModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl scale-95 transition-transform" style="background-color: var(--bg-card);">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+                <h3 class="font-black text-lg flex items-center gap-2" style="color: var(--text-main)">
+                    <i class="fa-solid fa-cloud-arrow-up" style="color: var(--accent-color)"></i> Cloud Sync
+                </h3>
+                <button onclick="closeModal('authModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="space-y-3">
+                <input type="email" id="authEmail" placeholder="Email Address" class="input-field py-2">
+                <input type="password" id="authPass" placeholder="Password" class="input-field py-2">
+                <div class="flex gap-2 mt-4">
+                    <button onclick="sakhiAuthAction(false)" class="btn-primary flex-1 py-2 text-sm shadow-md">Login</button>
+                    <button onclick="sakhiAuthAction(true)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 flex-1 py-2 rounded-full font-bold text-sm transition-colors border border-slate-200">Register</button>
+                </div>
+                <p class="text-[9px] text-center text-slate-400 mt-2"><i class="fa-solid fa-shield-halved"></i> Your data will be securely synced.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="accountModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl scale-95 transition-transform text-center" style="background-color: var(--bg-card);">
+            <div class="flex justify-end"><button onclick="closeModal('accountModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+            <div class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl text-white mb-2 shadow-lg" style="background-color: var(--accent-color)"><i class="fa-solid fa-user"></i></div>
+            <h3 class="font-black text-lg mb-1" style="color: var(--text-main)">Account Active</h3>
+            <p class="text-xs text-emerald-500 font-bold mb-5 bg-emerald-50 inline-block px-3 py-1 rounded-full border border-emerald-100"><i class="fa-solid fa-cloud-check"></i> Safely Synced to Cloud</p>
+            <button onclick="sakhiLogout()" class="w-full py-2.5 text-rose-500 border border-rose-200 bg-rose-50 rounded-xl hover:bg-rose-100 font-bold text-sm transition-colors flex items-center justify-center gap-2">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <div id="dailyLogModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-4 shadow-2xl scale-95 transition-transform overflow-y-auto max-h-[90vh]" id="dailyLogModalContent" style="background-color: var(--bg-card);">
+            <div class="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
+                <h3 class="font-black text-base flex items-center gap-2" style="color: var(--text-main)">
+                    <i class="fa-solid fa-book-medical" style="color: var(--accent-color)"></i> Daily Log
+                </h3>
+                <input type="date" id="dailyModalDate" class="text-xs font-bold border rounded p-1 bg-slate-50 outline-none text-slate-700" onchange="loadDailyModalData()">
+                <button onclick="closeModal('dailyLogModal')" class="text-slate-400 hover:text-slate-600 ml-2"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="space-y-3">
+                <div class="bg-rose-50 border border-rose-200 rounded-xl p-2.5 flex justify-between items-center shadow-sm">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-rose-500"><i class="fa-solid fa-calendar-plus"></i></div>
+                        <div>
+                            <h4 class="text-xs font-black text-rose-700 leading-tight">Start New Period</h4>
+                            <p class="text-[9px] text-rose-500 mt-0.5">Logs cycle start on this date</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="modalDailyStart" onchange="onStartToggle()" class="sr-only peer">
+                        <div class="w-10 h-5 bg-rose-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500 shadow-inner"></div>
+                    </label>
+                </div>
+
+                <div class="flex gap-2">
+                    <label class="flex-1 flex items-center justify-between bg-slate-50 border border-slate-200 p-2 rounded-xl cursor-pointer shadow-sm transition-colors hover:bg-slate-100">
+                        <span class="text-xs font-bold text-slate-700"><i class="fa-solid fa-droplet text-rose-500 mr-1"></i> Bleeding</span>
+                        <input type="checkbox" id="modalDailyBleeding" class="w-4 h-4 accent-rose-500 rounded cursor-pointer">
+                    </label>
+                    <div class="flex-1 bg-slate-50 border border-slate-200 rounded-xl flex items-center px-2 shadow-sm">
+                        <i class="fa-solid fa-weight-scale text-sky-500 text-xs mr-1"></i>
+                        <input type="number" id="modalDailyWeight" class="w-full bg-transparent outline-none text-xs font-bold text-slate-700 py-2" step="0.1" placeholder="Weight (kg)">
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex justify-between items-center mb-2 border-b border-slate-200 pb-1">
+                        <label class="compact-label"><i class="fa-solid fa-heart text-rose-400"></i> Intimacy Log</label>
+                        <button onclick="addIntimacyRow()" class="text-[10px] bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded font-bold text-slate-700 transition-colors"><i class="fa-solid fa-plus"></i> Add Event</button>
+                    </div>
+                    <div id="intimacyListContainer" class="space-y-2 max-h-40 overflow-y-auto">
+                    </div>
+                </div>
+
+                <button onclick="saveDailyHealthLog()" class="btn-primary w-full py-3 mt-2 flex items-center justify-center gap-2 text-sm shadow-md">
+                    <i class="fa-solid fa-save"></i> Save Daily Log
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main id="home" class="tab-content active mt-1">
+       <div class="mx-auto max-w-[95%] text-white rounded-2xl px-4 py-3 mb-4 shadow-lg text-left relative overflow-hidden transition-colors duration-500" id="statusCapsule" style="background-color: var(--text-muted);">
+            <div class="flex justify-between items-center mb-1.5 border-b border-white/20 pb-1.5">
+                <span class="text-xs font-black text-white tracking-wider flex items-center gap-1.5">
+                    <i class="fa-regular fa-calendar text-white/80"></i> <span id="homeTodayDate">--.--.----</span>
+                </span>
+                <span class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-sm text-white bg-black/20" id="capsuleRiskBadge">Risk: --</span>
+            </div>
+            <p class="text-[11px] leading-snug font-medium text-white/90 flex items-start gap-1.5" id="homeEggStatus">
+                <i class="fa-solid fa-circle-info text-white/70 mt-0.5"></i> <span>Please log your period cycle to get insights.</span>
+            </p>
+        </div>
+
+        <div class="custom-card text-center relative overflow-hidden pt-4 pb-6 mt-2">
+            <h2 class="compact-label mb-2">Cycle Tracking</h2>
+            
+            <div class="progress-circle-container my-4">
+                <div id="cycleSvgOverlay" class="svg-overlay"></div>
+                
+                <div class="progress-inner">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0">Day</span>
+                    <h1 class="text-6xl font-black leading-none tracking-tighter mb-2" id="currentCycleDay">--</h1>
+                    
+                    <button onclick="openDailyLogModal()" class="pulse-btn flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-md transition-transform active:scale-95" style="background-color: var(--accent-color);">
+                        <i class="fa-solid fa-pen-to-square"></i> Log Today
+                    </button>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 text-left mt-5">
+                <div class="p-2.5 rounded-xl border border-slate-100 bg-slate-50 shadow-sm">
+                    <p class="text-[9px] font-bold uppercase text-slate-500 mb-0.5"><i class="fa-regular fa-calendar-check text-rose-400 mr-1"></i> Next Period</p>
+                    <p class="text-sm font-black text-slate-800" id="nextPeriodDate">--.--.----</p>
+                    <p class="text-[10px] mt-0.5 font-bold text-slate-500" id="daysTillNextPeriod">-- days left</p>
+                </div>
+                <div class="p-2.5 rounded-xl border border-slate-100 bg-slate-50 shadow-sm">
+                    <p class="text-[9px] font-bold uppercase text-slate-500 mb-0.5"><i class="fa-solid fa-egg text-amber-500 mr-1"></i> Ovulation</p>
+                    <p class="text-sm font-black text-slate-800" id="ovulationDate">--.--.----</p>
+                    <p class="text-[10px] mt-0.5 font-bold text-slate-500" id="pregnancyRiskHome">Risk: --</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <main id="graphs" class="tab-content mt-1">
+        <div class="custom-card">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-line text-rose-500"></i> Pregnancy Risk (Current Cycle)</h2>
+            </div>
+            <div class="w-full overflow-x-auto bg-slate-50 p-1.5 rounded-xl border border-slate-100">
+                <div class="min-w-[450px] h-[180px] relative"><canvas id="riskChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="custom-card mt-2">
+            <h2 class="text-xs font-bold mb-2 flex items-center gap-1.5"><i class="fa-solid fa-weight-scale text-sky-500"></i> Weight Trend Log</h2>
+            <div class="w-full overflow-x-auto bg-slate-50 p-1.5 rounded-xl border border-slate-100">
+                <div class="min-w-[400px] h-[180px] relative"><canvas id="weightChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="custom-card mt-2">
+            <h2 class="text-xs font-bold mb-2 flex items-center gap-1.5"><i class="fa-solid fa-heart text-rose-400"></i> Intimacy Activity (All Time)</h2>
+            <div class="w-full overflow-x-auto bg-slate-50 p-1.5 rounded-xl border border-slate-100">
+                <div class="min-w-[400px] h-[180px] relative"><canvas id="intimacyChart"></canvas></div>
+            </div>
+        </div>
+    </main>
+
+    <main id="report" class="tab-content mt-1">
+        <div class="print-only report-header border-b-2 border-slate-800 pb-3 mb-4">
+            <h1 style="font-size: 18pt; margin: 0; font-weight: 800;">SAKHI HEALTH REPORT</h1>
+            <div style="margin-top: 8px; font-size: 9pt; display: flex; justify-content: space-between;">
+                <span>Generated: <strong id="printDate">--.--.----</strong></span>
+                <span>Avg Cycle: <strong id="printCycleLen">28 Days</strong></span>
+            </div>
+        </div>
+        
+        <div class="custom-card no-print text-center py-4">
+            <i class="fa-solid fa-file-medical text-3xl mb-2" style="color: var(--accent-color)"></i>
+            <h2 class="text-sm font-black mb-1">Professional Report</h2>
+            <p class="text-[10px] text-slate-500 mb-3 px-4">Generate detailed, categorized medical records for doctor visits.</p>
+            <button onclick="window.print()" class="btn-primary w-full py-2 flex items-center justify-center gap-2 text-xs shadow-md">
+                <i class="fa-solid fa-print"></i> Print / Save PDF
+            </button>
+        </div>
+
+        <div id="dynamicReportContainer"></div>
+    </main>
+
+    <main id="settings" class="tab-content mt-1">
+        <div class="custom-card">
+            <h2 class="text-sm font-bold mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
+                <i class="fa-solid fa-sliders text-rose-500"></i> Settings
+            </h2>
+            <div class="mb-4">
+                <label class="compact-label block mb-2">Select Theme:</label>
+                <div class="grid grid-cols-5 gap-2 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                    <button onclick="setTheme('blossom')" class="aspect-square rounded-lg bg-[#FF5A8D] shadow text-white text-xs font-bold">B</button>
+                    <button onclick="setTheme('ocean')" class="aspect-square rounded-lg bg-[#0ea5e9] shadow text-white text-xs font-bold">O</button>
+                    <button onclick="setTheme('mint')" class="aspect-square rounded-lg bg-[#10b981] shadow text-white text-xs font-bold">M</button>
+                    <button onclick="setTheme('lavender')" class="aspect-square rounded-lg bg-[#a855f7] shadow text-white text-xs font-bold">L</button>
+                    <button onclick="setTheme('midnight')" class="aspect-square rounded-lg bg-[#0F172A] shadow text-white text-xs font-bold">D</button>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                    <label class="compact-label block">Avg Cycle Length (Days)</label>
+                    <input type="number" id="settingCycle" class="input-field py-1.5" value="28" min="20" max="45" onchange="saveSettings()">
+                </div>
+                <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                    <label class="compact-label block">Avg Bleeding (Days)</label>
+                    <input type="number" id="settingBleeding" class="input-field py-1.5" value="5" min="2" max="10" onchange="saveSettings()">
+                </div>
+            </div>
+            <button onclick="confirmClearAllData()" class="mt-5 w-full py-2 text-red-500 border border-red-200 bg-red-50 rounded-xl hover:bg-red-100 font-bold flex items-center justify-center gap-2 text-xs transition-colors">
+                <i class="fa-solid fa-trash-can"></i> Erase All Data
+            </button>
+        </div>
+    </main>
+
+    <nav class="bottom-nav no-print max-w-md sm:max-w-lg">
+        <div class="nav-item active" onclick="switchTab('home')" data-target="home"><i class="fa-solid fa-house"></i><span>Home</span></div>
+        <div class="nav-item" onclick="switchTab('graphs')" data-target="graphs"><i class="fa-solid fa-chart-line"></i><span>Graphs</span></div>
+        <div class="nav-item" onclick="switchTab('report')" data-target="report"><i class="fa-solid fa-clipboard-list"></i><span>Report</span></div>
+        <div class="nav-item" onclick="switchTab('settings')" data-target="settings"><i class="fa-solid fa-gear"></i><span>Settings</span></div>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCSneZofrBGOwHDLNK2f2SDUiiwnoah2cM",
+            authDomain: "personal-54ee0.firebaseapp.com",
+            databaseURL: "https://personal-54ee0-default-rtdb.firebaseio.com",
+            projectId: "personal-54ee0",
+            storageBucket: "personal-54ee0.firebasestorage.app",
+            messagingSenderId: "478812450198",
+            appId: "1:478812450198:web:483b14772d4b2b5f5301b7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let currentUser = null;
+        let appData = { settings: { theme: 'blossom', cycleLength: 28, bleedingDays: 5 }, logs: {} };
+        let riskChartInst = null, weightChartInst = null, intimacyChartInst = null;
+        let currentIntimacyEntries = [];
+
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            const authIcon = document.getElementById('authIconBtn');
+            if (user) {
+                authIcon.innerHTML = '<i class="fa-solid fa-user-check"></i>';
+                authIcon.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
+                authIcon.classList.remove('bg-white');
+                await fetchFromCloud();
+            } else {
+                authIcon.innerHTML = '<i class="fa-regular fa-user"></i>';
+                authIcon.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-600');
+                authIcon.classList.add('bg-white');
+            }
+        });
+
+        const fetchFromCloud = async () => {
+            if(!currentUser) return;
+            try {
+                const dbRef = ref(db);
+                const snapshot = await get(child(dbRef, `Sakhi/${currentUser.uid}`));
+                if(snapshot.exists()) {
+                    appData = snapshot.val();
+                    if (!appData.settings) appData.settings = { theme: 'blossom', cycleLength: 28, bleedingDays: 5 };
+                    if (!appData.logs) appData.logs = {};
+                    localStorage.setItem('sakhiProDB', JSON.stringify(appData));
+                    window.updateAllDataViews();
+                    window.showToast("Sync Successful!");
+                } else {
+                    await pushToCloud();
+                }
+            } catch(e) { console.error("Cloud Fetch Error:", e); }
+        };
+
+        const pushToCloud = async () => {
+            if(!currentUser) return;
+            try {
+                await set(ref(db, `Sakhi/${currentUser.uid}`), appData);
+            } catch(e) { console.error("Cloud Push Error:", e); }
+        };
+
+        window.openAuthModal = () => {
+            if(currentUser) window.openModal('accountModal');
+            else window.openModal('authModal');
+        };
+
+        window.sakhiAuthAction = async (isSignup) => {
+            const email = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPass').value;
+            if(!email || !pass) return window.showToast("Enter Email & Password");
+            
+            try {
+                if(isSignup) await createUserWithEmailAndPassword(auth, email, pass);
+                else await signInWithEmailAndPassword(auth, email, pass);
+                
+                window.closeModal('authModal');
+                document.getElementById('authEmail').value = '';
+                document.getElementById('authPass').value = '';
+                window.showToast("Logged In!");
+            } catch(e) {
+                alert("Auth Error: " + e.message);
+            }
+        };
+
+        window.sakhiLogout = () => {
+            signOut(auth);
+            window.closeModal('accountModal');
+            window.showToast("Logged Out");
+        };
+
+        const formatYMD = (dObj) => {
+            const d = new Date(dObj);
+            return `${d.getFullYear()}-${('0'+(d.getMonth() + 1)).slice(-2)}-${('0'+d.getDate()).slice(-2)}`;
+        };
+        const formatDDMMYYYY = (dateStr) => {
+            if(!dateStr) return '--.--.----';
+            const d = new Date(dateStr);
+            return `${('0'+d.getDate()).slice(-2)}.${('0'+(d.getMonth()+1)).slice(-2)}.${d.getFullYear()}`;
+        };
+        const addDays = (dateStr, days) => formatYMD(new Date(new Date(dateStr).getTime() + days * 86400000));
+        const diffDays = (d1, d2) => Math.ceil((new Date(d2) - new Date(d1)) / 86400000);
+        
+        window.showToast = (msg) => {
+            const t = document.getElementById('toast'); document.getElementById('toastText').innerText = msg;
+            t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
+        };
+
+        window.openModal = (id) => {
+            const m = document.getElementById(id), c = m.children[0];
+            m.classList.remove('hidden'); m.classList.add('flex');
+            setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10);
+        };
+        window.closeModal = (id) => {
+            const m = document.getElementById(id), c = m.children[0];
+            m.classList.add('opacity-0'); c.classList.add('scale-95');
+            setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 200);
+        };
+
+        window.commitData = () => {
+            localStorage.setItem('sakhiProDB', JSON.stringify(appData));
+            pushToCloud();
+            window.updateAllDataViews();
+        };
+
+        window.loadSavedDatabase = () => {
+            const stored = localStorage.getItem('sakhiProDB');
+            if (stored) {
+                try {
+                    appData = JSON.parse(stored);
+                    if (!appData.settings) appData.settings = { theme: 'blossom', cycleLength: 28, bleedingDays: 5 };
+                    if (!appData.logs) appData.logs = {};
+                    Object.keys(appData.logs).forEach(k => {
+                        let log = appData.logs[k];
+                        if(!log.intimacy) log.intimacy = [];
+                    });
+                } catch(e) { console.error("DB Error", e); }
+            }
+            window.setTheme(appData.settings.theme);
+            document.getElementById('settingCycle').value = appData.settings.cycleLength;
+            document.getElementById('settingBleeding').value = appData.settings.bleedingDays;
+            document.getElementById('printDate').innerText = formatDDMMYYYY(new Date());
+            window.updateAllDataViews();
+        };
+
+        window.setTheme = (t) => { appData.settings.theme = t; document.documentElement.setAttribute('data-theme', t); window.commitData(); };
+        window.toggleQuickTheme = () => { const themes = ['blossom','ocean','mint','lavender','midnight']; window.setTheme(themes[(themes.indexOf(appData.settings.theme)+1)%themes.length]); };
+        window.saveSettings = () => {
+            appData.settings.cycleLength = parseInt(document.getElementById('settingCycle').value)||28;
+            appData.settings.bleedingDays = parseInt(document.getElementById('settingBleeding').value)||5;
+            window.commitData(); window.showToast("Settings Saved!");
+        };
+        
+        window.confirmClearAllData = () => { 
+            if(confirm("⚠ Step 1: Are you sure you want to erase all your tracking data?")) { 
+                if(confirm("⚠ Step 2: This action cannot be undone and you will lose all past cycle history. Proceed?")) {
+                    if(confirm("⚠ Final Step: Click OK to permanently delete everything.")) {
+                        localStorage.removeItem('sakhiProDB');
+                        if(currentUser) set(ref(db, `Sakhi/${currentUser.uid}`), { settings: appData.settings, logs: {} });
+                        location.reload(); 
+                    }
+                }
+            } 
+        };
+
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.nav-item[data-target="${tabId}"]`)?.classList.add('active');
+            if(tabId === 'graphs') window.renderGraphs();
+            if(tabId === 'report') window.compileReport();
+        };
+
+        window.openDailyLogModal = () => {
+            document.getElementById('dailyModalDate').value = formatYMD(new Date());
+            window.loadDailyModalData(); window.openModal('dailyLogModal');
+        };
+
+        window.loadDailyModalData = () => {
+            const dateStr = document.getElementById('dailyModalDate').value;
+            if(!dateStr) return;
+            const log = appData.logs[dateStr] || { isStart: false, isBleeding: false, weight: '', intimacy: [] };
+            
+            document.getElementById('modalDailyStart').checked = !!log.isStart;
+            document.getElementById('modalDailyBleeding').checked = !!log.isBleeding;
+            document.getElementById('modalDailyWeight').value = log.weight || '';
+            currentIntimacyEntries = JSON.parse(JSON.stringify(log.intimacy || []));
+            window.renderIntimacyList();
+        };
+
+        window.onStartToggle = () => {
+            if(document.getElementById('modalDailyStart').checked) {
+                document.getElementById('modalDailyBleeding').checked = true;
+            }
+        };
+
+        window.addIntimacyRow = () => { currentIntimacyEntries.push({ time: '', type: 'protected' }); window.renderIntimacyList(); };
+        window.removeIntimacyRow = (idx) => { currentIntimacyEntries.splice(idx, 1); window.renderIntimacyList(); };
+        window.updateIntimacyVal = (idx, field, val) => { currentIntimacyEntries[idx][field] = val; };
+        
+        window.renderIntimacyList = () => {
+            const c = document.getElementById('intimacyListContainer'); c.innerHTML = '';
+            if(currentIntimacyEntries.length === 0) { c.innerHTML = '<p class="text-[10px] text-slate-400 text-center py-1">No intimacy records today.</p>'; return; }
+            currentIntimacyEntries.forEach((entry, i) => {
+                c.insertAdjacentHTML('beforeend', `
+                    <div class="flex items-center gap-2 bg-white p-1.5 rounded border border-slate-100">
+                        <input type="time" onchange="updateIntimacyVal(${i}, 'time', this.value)" value="${entry.time}" class="text-[10px] p-1 border rounded w-20 outline-none">
+                        <select onchange="updateIntimacyVal(${i}, 'type', this.value)" class="text-[10px] p-1 border rounded flex-1 outline-none font-bold ${entry.type==='protected'?'text-emerald-600':'text-rose-600'}">
+                            <option value="protected" ${entry.type==='protected'?'selected':''}>Protected</option>
+                            <option value="unprotected" ${entry.type==='unprotected'?'selected':''}>Unprotected</option>
+                        </select>
+                        <button onclick="removeIntimacyRow(${i})" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash text-xs"></i></button>
+                    </div>
+                `);
+            });
+        };
+
+        window.saveDailyHealthLog = () => {
+            const d = document.getElementById('dailyModalDate').value;
+            if(!d) return;
+            if(!appData.logs[d]) appData.logs[d] = { isStart: false, isBleeding: false, intimacy: [], weight: null };
+            
+            const isStartingNow = document.getElementById('modalDailyStart').checked;
+            appData.logs[d].isStart = isStartingNow;
+
+            if (isStartingNow) {
+                const bDays = appData.settings.bleedingDays || 5;
+                for (let i = 0; i < bDays; i++) {
+                    const target = addDays(d, i);
+                    if (!appData.logs[target]) appData.logs[target] = { isStart: false, isBleeding: false, intimacy: [], weight: null };
+                    appData.logs[target].isBleeding = true;
+                }
+            } else {
+                appData.logs[d].isBleeding = document.getElementById('modalDailyBleeding').checked;
+            }
+
+            appData.logs[d].weight = document.getElementById('modalDailyWeight').value ? parseFloat(document.getElementById('modalDailyWeight').value) : null;
+            appData.logs[d].intimacy = JSON.parse(JSON.stringify(currentIntimacyEntries));
+            
+            window.commitData(); 
+            window.closeModal('dailyLogModal'); 
+            window.showToast(`Saved for ${formatDDMMYYYY(d)}`);
+        };
+
+        const getStarts = () => Object.keys(appData.logs).filter(k => appData.logs[k].isStart).sort((a,b)=>new Date(a)-new Date(b));
+        const getActiveStart = () => {
+            const starts = getStarts(), today = formatYMD(new Date());
+            for(let i=starts.length-1; i>=0; i--) if(new Date(starts[i]) <= new Date(today)) return starts[i];
+            return null;
+        };
+        
+        const getCycleInsights = () => {
+            const start = getActiveStart(); if(!start) return null;
+            const len = appData.settings.cycleLength, next = addDays(start, len);
+            const ovu = addDays(next, -14), fS = addDays(ovu, -5), fE = addDays(ovu, 1);
+            const today = formatYMD(new Date()), cDay = diffDays(start, today) + 1, dLeft = diffDays(today, next);
+            return { start, next, ovu, fS, fE, cDay, dLeft };
+        };
+
+        const drawCycleDotsSVG = (insights) => {
+            const svgC = document.getElementById('cycleSvgOverlay');
+            if(!insights) { svgC.innerHTML = ''; return; }
+            
+            const len = appData.settings.cycleLength;
+            let svgHTML = `<svg width="240" height="240" viewBox="0 0 240 240">`;
+            const cx = 120, cy = 120, r = 105;
+            
+            for(let i=1; i<=len; i++) {
+                const angle = ((i-1)/len) * 2 * Math.PI - (Math.PI / 2);
+                const x = cx + r * Math.cos(angle), y = cy + r * Math.sin(angle);
+                const dDate = addDays(insights.start, i-1);
+                
+                let fill = '#E2E8F0', radius = 3.5, stroke = 'none', sw = 0;
+                
+                if (i <= appData.settings.bleedingDays || appData.logs[dDate]?.isBleeding) { fill = 'var(--risk-high)'; } 
+                else if (dDate >= insights.fS && dDate <= insights.fE) { fill = dDate === insights.ovu ? 'var(--risk-max)' : 'var(--risk-med)'; } 
+                else if (dDate < insights.fS) { fill = 'var(--risk-low)'; }
+
+                if (i === insights.cDay) { radius = 6; stroke = 'var(--text-main)'; sw = 1.5; }
+                
+                svgHTML += `<circle cx="${x}" cy="${y}" r="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" />`;
+            }
+            svgHTML += `</svg>`;
+            svgC.innerHTML = svgHTML;
+        };
+
+        window.updateAllDataViews = () => {
+            const ins = getCycleInsights();
+            const dayEl = document.getElementById('currentCycleDay');
+            const today = formatYMD(new Date());
+            
+            document.getElementById('homeTodayDate').innerText = formatDDMMYYYY(today);
+
+           if(!ins) {
+                dayEl.innerText = "--"; document.getElementById('nextPeriodDate').innerText = "--.--.----";
+                document.getElementById('ovulationDate').innerText = "--.--.----";
+                document.getElementById('pregnancyRiskHome').innerText = "Risk: --";
+                document.getElementById('cycleSvgOverlay').innerHTML = '';
+                document.getElementById('homeEggStatus').innerHTML = '<i class="fa-solid fa-circle-info text-white/70 mt-0.5"></i> <span>Please log your period start date.</span>';
+                document.getElementById('capsuleRiskBadge').innerText = "Risk: --";
+                document.getElementById('statusCapsule').style.backgroundColor = "var(--text-muted)";
+                return;
+            }
+            
+            dayEl.innerText = ins.cDay > 0 ? ins.cDay : 1;
+            dayEl.style.color = 'var(--accent-color)';
+            
+            document.getElementById('nextPeriodDate').innerText = formatDDMMYYYY(ins.next);
+            document.getElementById('daysTillNextPeriod').innerText = ins.dLeft >= 0 ? `${ins.dLeft} days left` : `${Math.abs(ins.dLeft)} days late`;
+            document.getElementById('ovulationDate').innerText = formatDDMMYYYY(ins.ovu);
+            
+            let rLabel = "Low", rColor = "var(--risk-low)";
+            let eggInfo = "Follicular phase. Egg is maturing in the ovary. Safe window.";
+            let iconStr = '<i class="fa-solid fa-shield-heart text-white/90 mt-0.5"></i>';
+
+            if (ins.cDay <= appData.settings.bleedingDays || appData.logs[today]?.isBleeding) {
+                eggInfo = "Menstruation phase. Uterine lining is shedding. Safe window.";
+                rLabel = "Low"; rColor = "var(--risk-low)";
+            } else if(today >= ins.fS && today <= ins.fE) {
+                rLabel = today === ins.ovu ? "Peak" : "High";
+                rColor = today === ins.ovu ? "var(--risk-max)" : "var(--risk-high)";
+                eggInfo = today === ins.ovu ? "Ovulation Day! Egg is released and waiting in fallopian tube. Peak Pregnancy Chance." : "Fertile Window! Egg is preparing to be released soon. High Risk.";
+                iconStr = '<i class="fa-solid fa-triangle-exclamation text-white/90 mt-0.5"></i>';
+            } else if (today > ins.fE && today <= addDays(ins.fE, 2)) {
+                rLabel = "Medium"; rColor = "var(--risk-med)";
+                eggInfo = "Post-ovulation. Egg lifespan is ending. Medium risk.";
+                iconStr = '<i class="fa-solid fa-circle-exclamation text-white/90 mt-0.5"></i>';
+            } else if (today > addDays(ins.fE, 2)) {
+                eggInfo = "Luteal phase. The unfertilized egg is dissolving. Safe window.";
+            }
+
+            document.getElementById('pregnancyRiskHome').innerText = `Risk: ${rLabel}`;
+            document.getElementById('capsuleRiskBadge').innerText = `Risk: ${rLabel}`;
+            document.getElementById('statusCapsule').style.backgroundColor = rColor;
+            document.getElementById('homeEggStatus').innerHTML = `${iconStr} <span>${eggInfo}</span>`;
+            
+            drawCycleDotsSVG(ins);
+        };
+
+        window.renderGraphs = () => {
+            const ins = getCycleInsights(), len = appData.settings.cycleLength;
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            
+            if(riskChartInst) riskChartInst.destroy();
+            if(ins) {
+                let lbls = [], riskData = [];
+                for(let i=0; i<len; i++) {
+                    const dDate = addDays(ins.start, i);
+                    lbls.push([`Day ${i+1}`, formatDDMMYYYY(dDate)]);
+                    let val = 1;
+                    if(dDate >= ins.fS && dDate <= ins.fE) val = dDate === ins.ovu ? 4 : 3;
+                    else if (dDate > ins.fE && dDate <= addDays(ins.fE, 2)) val = 2;
+                    riskData.push(val);
+                }
+                const ctxR = document.getElementById('riskChart').getContext('2d');
+                riskChartInst = new Chart(ctxR, {
+                    type: 'line',
+                    data: { labels: lbls, datasets: [{ data: riskData, borderColor: '#f43f5e', backgroundColor: 'rgba(244, 63, 94, 0.1)', tension: 0.4, fill: true, pointRadius: 2 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false, max: 4.5 }, x: { ticks: { font: {size: 8} } } }, plugins: { legend: { display: false } } }
+                });
+            }
+
+            if(weightChartInst) weightChartInst.destroy();
+            const wDates = Object.keys(appData.logs).sort().filter(k => appData.logs[k].weight);
+            const ctxW = document.getElementById('weightChart').getContext('2d');
+            weightChartInst = new Chart(ctxW, {
+                type: 'line',
+                data: {
+                    labels: wDates.length ? wDates.map(d => formatDDMMYYYY(d)) : ['No Data'],
+                    datasets: [{ data: wDates.map(d => appData.logs[d].weight), borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.1)', tension: 0.4, fill: true, pointRadius: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { font: {size: 9} } } }, plugins: { legend: { display: false } } }
+            });
+
+            if(intimacyChartInst) intimacyChartInst.destroy();
+            const iDates = Object.keys(appData.logs).sort().filter(k => appData.logs[k].intimacy && appData.logs[k].intimacy.length > 0);
+            const ctxI = document.getElementById('intimacyChart').getContext('2d');
+            intimacyChartInst = new Chart(ctxI, {
+                type: 'line',
+                data: {
+                    labels: iDates.length ? iDates.map(d => formatDDMMYYYY(d)) : ['No Data'],
+                    datasets: [{ 
+                        label: 'Sessions', data: iDates.map(d => appData.logs[d].intimacy.length), 
+                        borderColor: '#a855f7', backgroundColor: 'rgba(168, 85, 247, 0.2)', tension: 0.3, fill: true, pointRadius: 5 
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks:{stepSize:1} }, x: { ticks: { font: {size: 9} } } }, plugins: { legend: { display: false } } }
+            });
+        };
+
+        window.compileReport = () => {
+            document.getElementById('printCycleLen').innerText = `${appData.settings.cycleLength} Days`;
+            const container = document.getElementById('dynamicReportContainer');
+            container.innerHTML = '';
+
+            const starts = getStarts();
+            if(starts.length === 0) {
+                container.innerHTML = '<p class="text-center text-xs text-slate-500 py-4">No cycle history available.</p>';
+                return;
+            }
+
+            for(let i = starts.length - 1; i >= 0; i--) {
+                const sDate = starts[i], nextSDate = starts[i+1] || null;
+                const endShowDate = nextSDate ? addDays(nextSDate, -1) : 'Present';
+                const labelPeriod = `${formatDDMMYYYY(sDate)} to ${nextSDate ? formatDDMMYYYY(endShowDate) : 'Present'}`;
+                
+                let countBleeding = 0, sumWeight = 0, countWeight = 0, countIntimacy = 0;
+
+                const cDates = Object.keys(appData.logs).filter(d => {
+                    const cd = new Date(d), sd = new Date(sDate);
+                    return nextSDate ? (cd >= sd && cd < new Date(nextSDate)) : cd >= sd;
+                }).sort((a,b)=>new Date(b)-new Date(a));
+
+                cDates.forEach(d => {
+                    const l = appData.logs[d];
+                    if(l.isBleeding) countBleeding++;
+                    if(l.weight) { sumWeight += l.weight; countWeight++; }
+                    if(l.intimacy && l.intimacy.length > 0) countIntimacy += l.intimacy.length;
+                });
+                let avgWeightStr = countWeight > 0 ? (sumWeight / countWeight).toFixed(1) : '-';
+
+                let html = `
+                <div class="cycle-report-group custom-card !p-0 !overflow-hidden mb-5">
+                    <div class="cycle-report-header flex justify-between items-center text-xs p-3">
+                        <span class="font-bold text-slate-700"><i class="fa-solid fa-rotate-left text-emerald-500 mr-1"></i> Cycle: ${labelPeriod}</span>
+                    </div>
+                    <div class="summary-grid bg-slate-50 border-b border-slate-200 grid grid-cols-3 divide-x divide-slate-200 text-center py-2">
+                        <div><span class="block text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-1">Bleeding</span><strong class="text-xs text-rose-600">${countBleeding} Days</strong></div>
+                        <div><span class="block text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-1">Avg Weight</span><strong class="text-xs text-sky-600">${avgWeightStr} kg</strong></div>
+                        <div><span class="block text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-1">Total Intimacy</span><strong class="text-xs text-purple-600">${countIntimacy} Times</strong></div>
+                    </div>
+                    <div class="overflow-x-auto p-2">
+                        <table class="w-full text-[10px] text-left">
+                            <thead><tr class="text-slate-500 border-b border-slate-200"><th class="p-2">Date</th><th class="p-2">Status</th><th class="p-2">Weight</th><th class="p-2">Intimacy Log</th></tr></thead>
+                            <tbody class="text-slate-700 font-medium">`;
+
+                if(cDates.length === 0) {
+                    html += `<tr><td colspan="4" class="p-2 text-center text-slate-400">No logs during this cycle.</td></tr>`;
+                } else {
+                    cDates.forEach(d => {
+                        const l = appData.logs[d];
+                        if(!l.isStart && !l.isBleeding && !l.weight && (!l.intimacy || l.intimacy.length===0)) return;
+                        
+                        let sts = [];
+                        if(l.isStart) sts.push('<span class="bg-rose-100 text-rose-700 px-1 rounded">Start</span>');
+                        if(l.isBleeding) sts.push('<span class="text-rose-600 font-bold">Bleeding</span>');
+                        
+                        let intHTML = '-';
+                        if(l.intimacy && l.intimacy.length > 0) {
+                            intHTML = l.intimacy.map(int => {
+                                let timeStr = int.time ? `<span class="text-slate-400 font-normal">(${int.time})</span>` : '';
+                                if(int.type === 'protected') return `<span class="text-emerald-600"><i class="fa-solid fa-shield"></i> P ${timeStr}</span>`;
+                                return `<span class="text-rose-600"><i class="fa-solid fa-triangle-exclamation"></i> U ${timeStr}</span>`;
+                            }).join('<br>');
+                        }
+
+                        html += `<tr class="border-b border-slate-100 hover:bg-slate-50">
+                            <td class="p-2 font-bold">${formatDDMMYYYY(d)}</td><td class="p-2 text-[9px]">${sts.length ? sts.join(' ') : '-'}</td>
+                            <td class="p-2">${l.weight ? l.weight+'kg' : '-'}</td><td class="p-2 text-[9px]">${intHTML}</td>
+                        </tr>`;
+                    });
+                }
+                html += `</tbody></table></div></div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            }
+        };
+
+        window.onload = window.loadSavedDatabase;
+    </script>
+  	<script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
+</script>
+</body>
+</html>
