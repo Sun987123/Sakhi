@@ -648,9 +648,11 @@
                 else if (dDate >= insights.fS && dDate <= insights.fE) { fill = dDate === insights.ovu ? 'var(--risk-max)' : 'var(--risk-med)'; } 
                 else if (dDate < insights.fS) { fill = 'var(--risk-low)'; }
 
-                if (i === insights.cDay) { radius = 6; stroke = 'var(--text-main)'; sw = 1.5; }
+               if (i === insights.cDay) { radius = 6; stroke = 'var(--text-main)'; sw = 1.5; }
                 
+                const dateNum = new Date(dDate).getDate();
                 svgHTML += `<circle cx="${x}" cy="${y}" r="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" />`;
+                svgHTML += `<text x="${cx + (r + 10) * Math.cos(angle)}" y="${cy + (r + 10) * Math.sin(angle) + 3}" font-size="8" font-weight="bold" fill="var(--text-muted)" text-anchor="middle">${dateNum}</text>`;
             }
             svgHTML += `</svg>`;
             svgC.innerHTML = svgHTML;
