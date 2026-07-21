@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="blossom">
 <head>
-  	<link rel="manifest" href="manifest.json">
-		<meta name="theme-color" content="#1e1e2e">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e1e2e">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sakhi - Smart Period & Health Tracker</title>
+    <title>Sakhi - Smart Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -110,18 +110,19 @@
 
         .compact-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
 
-        @media print {
+       @media print {
             body { background-color: #FFFFFF !important; color: #000000 !important; padding: 0 !important; font-size: 11pt; }
             .no-print { display: none !important; }
             .print-only { display: block !important; }
-            .custom-card { box-shadow: none !important; border: 1px solid #E2E8F0 !important; padding: 1rem !important; margin-bottom: 1rem !important; page-break-inside: avoid; }
+            .custom-card { box-shadow: none !important; border: 1px solid #E2E8F0 !important; padding: 1rem !important; margin-bottom: 1rem !important; }
             .tab-content { display: block !important; }
             #home, #graphs, #settings, header, nav { display: none !important; }
             #report { display: block !important; width: 100% !important; }
             table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 9pt; }
             th, td { border: 1px solid #CBD5E1; padding: 6px; text-align: left; }
             th { background-color: #F8FAFC; font-weight: bold; }
-            .cycle-report-group { margin-bottom: 2rem; page-break-inside: avoid; border: 1px solid #CBD5E1; border-radius: 8px; overflow: hidden; }
+            .cycle-report-group { margin-bottom: 1rem; border: 1px solid #CBD5E1; border-radius: 8px; overflow: hidden; page-break-before: always; }
+            .first-page-print { page-break-after: always; }
             .cycle-report-header { font-size: 11pt; font-weight: bold; background: #F1F5F9; padding: 8px; border-bottom: 1px solid #CBD5E1; }
             .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: #F8FAFC; padding: 8px; border-bottom: 1px solid #CBD5E1; font-size: 9pt; text-align: center; }
             .summary-grid strong { display: block; font-size: 10pt; color: #000; }
@@ -219,11 +220,22 @@
                     </label>
                     <div class="flex-1 bg-slate-50 border border-slate-200 rounded-xl flex items-center px-2 shadow-sm">
                         <i class="fa-solid fa-weight-scale text-sky-500 text-xs mr-1"></i>
-                        <input type="number" id="modalDailyWeight" class="w-full bg-transparent outline-none text-xs font-bold text-slate-700 py-2" step="0.1" placeholder="Weight (kg)">
+                        <input type="number" id="modalDailyWeight" class="w-full bg-transparent outline-none text-xs font-bold text-slate-700 py-2" step="0.1" placeholder="Weight">
+                    </div>
+                    <div class="relative">
+                        <input type="text" id="modalDailyLocation" list="locationOptions" placeholder="HOME/OUT" class="bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 px-2 py-2 shadow-sm outline-none w-24">
+                        <datalist id="locationOptions">
+                            <option value="HOME"></option>
+                            <option value="OUT"></option>
+                        </datalist>
                     </div>
                 </div>
 
-                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 shadow-sm">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl shadow-sm overflow-hidden mt-3">
+                    <textarea id="modalDailyNotes" rows="2" placeholder="Write today's notes here..." class="w-full bg-transparent outline-none text-[11px] text-slate-700 p-2 resize-none"></textarea>
+                </div>
+
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 shadow-sm mt-3">
                     <div class="flex justify-between items-center mb-2 border-b border-slate-200 pb-1">
                         <label class="compact-label"><i class="fa-solid fa-heart text-rose-400"></i> Intimacy Log</label>
                         <button onclick="addIntimacyRow()" class="text-[10px] bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded font-bold text-slate-700 transition-colors"><i class="fa-solid fa-plus"></i> Add Event</button>
@@ -240,45 +252,39 @@
     </div>
 
     <main id="home" class="tab-content active mt-1">
-       <div class="mx-auto max-w-[95%] text-white rounded-2xl px-4 py-3 mb-4 shadow-lg text-left relative overflow-hidden transition-colors duration-500" id="statusCapsule" style="background-color: var(--text-muted);">
-            <div class="flex justify-between items-center mb-1.5 border-b border-white/20 pb-1.5">
-                <span class="text-xs font-black text-white tracking-wider flex items-center gap-1.5">
-                    <i class="fa-regular fa-calendar text-white/80"></i> <span id="homeTodayDate">--.--.----</span>
-                </span>
-                <span class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-sm text-white bg-black/20" id="capsuleRiskBadge">Risk: --</span>
+        <div class="mx-auto max-w-[95%] text-white rounded-full px-5 py-3 mb-3 shadow-lg text-left relative overflow-hidden transition-colors duration-500 flex justify-between items-center" id="statusCapsule" style="background-color: var(--text-muted);">
+            <div id="riskWatermark" class="absolute right-[-10px] top-1/2 transform -translate-y-1/2 text-5xl font-black opacity-10 select-none uppercase tracking-tighter">--</div>
+            <div class="relative z-10 flex flex-col">
+                <span class="text-[10px] font-black uppercase tracking-widest text-white/80 mb-0.5" id="homeTodayDate">--.--.----</span>
+                <span class="text-sm font-black" id="homeEggStatusText">Please log your period</span>
             </div>
-            <p class="text-[11px] leading-snug font-medium text-white/90 flex items-start gap-1.5" id="homeEggStatus">
-                <i class="fa-solid fa-circle-info text-white/70 mt-0.5"></i> <span>Please log your period cycle to get insights.</span>
-            </p>
+            <div class="relative z-10 bg-black/20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm" id="capsuleRiskBadge">Risk: --</div>
         </div>
 
-        <div class="custom-card text-center relative overflow-hidden pt-4 pb-6 mt-2">
+        <div class="custom-card text-center relative overflow-hidden pt-4 pb-4 mt-2">
             <h2 class="compact-label mb-2">Cycle Tracking</h2>
-            
             <div class="progress-circle-container my-4">
                 <div id="cycleSvgOverlay" class="svg-overlay"></div>
-                
                 <div class="progress-inner">
                     <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0">Day</span>
                     <h1 class="text-6xl font-black leading-none tracking-tighter mb-2" id="currentCycleDay">--</h1>
-                    
                     <button onclick="openDailyLogModal()" class="pulse-btn flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-md transition-transform active:scale-95" style="background-color: var(--accent-color);">
                         <i class="fa-solid fa-pen-to-square"></i> Log Today
                     </button>
                 </div>
             </div>
             
-            <div class="grid grid-cols-2 gap-2 text-left mt-5">
-                <div class="p-2.5 rounded-xl border border-slate-100 bg-slate-50 shadow-sm">
-                    <p class="text-[9px] font-bold uppercase text-slate-500 mb-0.5"><i class="fa-regular fa-calendar-check text-rose-400 mr-1"></i> Next Period</p>
-                    <p class="text-sm font-black text-slate-800" id="nextPeriodDate">--.--.----</p>
-                    <p class="text-[10px] mt-0.5 font-bold text-slate-500" id="daysTillNextPeriod">-- days left</p>
+            <div class="mx-auto max-w-[90%] bg-slate-50 border border-slate-200 rounded-full px-4 py-2 mt-4 shadow-sm flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-rose-100 flex items-center justify-center text-rose-500"><i class="fa-regular fa-calendar-check text-[10px]"></i></div>
+                    <div class="text-left"><p class="text-[9px] font-bold uppercase text-slate-500 leading-none">Next Period</p><p class="text-xs font-black text-slate-800 leading-none mt-1" id="nextPeriodDate">--.--.----</p></div>
                 </div>
-                <div class="p-2.5 rounded-xl border border-slate-100 bg-slate-50 shadow-sm">
-                    <p class="text-[9px] font-bold uppercase text-slate-500 mb-0.5"><i class="fa-solid fa-egg text-amber-500 mr-1"></i> Ovulation</p>
-                    <p class="text-sm font-black text-slate-800" id="ovulationDate">--.--.----</p>
-                    <p class="text-[10px] mt-0.5 font-bold text-slate-500" id="pregnancyRiskHome">Risk: --</p>
-                </div>
+                <div class="text-[10px] font-black text-rose-500 bg-rose-50 px-2 py-1 rounded-full border border-rose-100" id="daysTillNextPeriod">--</div>
+            </div>
+
+            <div class="mt-4 border-t border-slate-100 pt-3">
+                <p class="text-[9px] font-bold uppercase text-slate-500 mb-2 text-left px-2"><i class="fa-solid fa-chart-area text-rose-400 mr-1"></i> Current Cycle Risk Graph</p>
+                <div class="w-full bg-slate-50 p-1.5 rounded-xl border border-slate-100 h-[100px] relative"><canvas id="homeRiskChart"></canvas></div>
             </div>
         </div>
     </main>
@@ -388,7 +394,7 @@
 
         let currentUser = null;
         let appData = { settings: { theme: 'blossom', cycleLength: 28, bleedingDays: 5 }, logs: {} };
-        let riskChartInst = null, weightChartInst = null, intimacyChartInst = null;
+        let riskChartInst = null, weightChartInst = null, intimacyChartInst = null, homeRiskChartInst = null;
         let currentIntimacyEntries = [];
 
         onAuthStateChanged(auth, async (user) => {
@@ -551,11 +557,13 @@
         window.loadDailyModalData = () => {
             const dateStr = document.getElementById('dailyModalDate').value;
             if(!dateStr) return;
-            const log = appData.logs[dateStr] || { isStart: false, isBleeding: false, weight: '', intimacy: [] };
+            const log = appData.logs[dateStr] || { isStart: false, isBleeding: false, weight: '', location: 'IN', notes: '', intimacy: [] };
             
             document.getElementById('modalDailyStart').checked = !!log.isStart;
             document.getElementById('modalDailyBleeding').checked = !!log.isBleeding;
             document.getElementById('modalDailyWeight').value = log.weight || '';
+            document.getElementById('modalDailyLocation').value = log.location || 'IN';
+            document.getElementById('modalDailyNotes').value = log.notes || '';
             currentIntimacyEntries = JSON.parse(JSON.stringify(log.intimacy || []));
             window.renderIntimacyList();
         };
@@ -566,7 +574,7 @@
             }
         };
 
-        window.addIntimacyRow = () => { currentIntimacyEntries.push({ time: '', type: 'protected' }); window.renderIntimacyList(); };
+        window.addIntimacyRow = () => { currentIntimacyEntries.push({ time: '', type: '' }); window.renderIntimacyList(); };
         window.removeIntimacyRow = (idx) => { currentIntimacyEntries.splice(idx, 1); window.renderIntimacyList(); };
         window.updateIntimacyVal = (idx, field, val) => { currentIntimacyEntries[idx][field] = val; };
         
@@ -577,7 +585,8 @@
                 c.insertAdjacentHTML('beforeend', `
                     <div class="flex items-center gap-2 bg-white p-1.5 rounded border border-slate-100">
                         <input type="time" onchange="updateIntimacyVal(${i}, 'time', this.value)" value="${entry.time}" class="text-[10px] p-1 border rounded w-20 outline-none">
-                        <select onchange="updateIntimacyVal(${i}, 'type', this.value)" class="text-[10px] p-1 border rounded flex-1 outline-none font-bold ${entry.type==='protected'?'text-emerald-600':'text-rose-600'}">
+                        <select onchange="updateIntimacyVal(${i}, 'type', this.value)" class="text-[10px] p-1 border rounded flex-1 outline-none font-bold ${entry.type==='protected'?'text-emerald-600':(entry.type==='unprotected'?'text-rose-600':'text-slate-400')}">
+                            <option value="" disabled ${entry.type===''?'selected':''}>Select Type</option>
                             <option value="protected" ${entry.type==='protected'?'selected':''}>Protected</option>
                             <option value="unprotected" ${entry.type==='unprotected'?'selected':''}>Unprotected</option>
                         </select>
@@ -590,7 +599,27 @@
         window.saveDailyHealthLog = () => {
             const d = document.getElementById('dailyModalDate').value;
             if(!d) return;
-            if(!appData.logs[d]) appData.logs[d] = { isStart: false, isBleeding: false, intimacy: [], weight: null };
+          const locVal = document.getElementById('modalDailyLocation').value.trim();
+            if(!locVal) {
+                window.showToast("Please enter or select Location (HOME/OUT)");
+                return;
+            }
+            
+            for(let entry of currentIntimacyEntries) {
+                if(entry.type === '') {
+                    window.showToast("Please select Protected/Unprotected");
+                    return;
+                }
+            }
+            
+            for(let entry of currentIntimacyEntries) {
+                if(entry.type === '') {
+                    window.showToast("Please select Protected/Unprotected");
+                    return;
+                }
+            }
+
+            if(!appData.logs[d]) appData.logs[d] = { isStart: false, isBleeding: false, intimacy: [], weight: null, location: 'IN', notes: '' };
             
             const isStartingNow = document.getElementById('modalDailyStart').checked;
             appData.logs[d].isStart = isStartingNow;
@@ -599,7 +628,7 @@
                 const bDays = appData.settings.bleedingDays || 5;
                 for (let i = 0; i < bDays; i++) {
                     const target = addDays(d, i);
-                    if (!appData.logs[target]) appData.logs[target] = { isStart: false, isBleeding: false, intimacy: [], weight: null };
+                    if (!appData.logs[target]) appData.logs[target] = { isStart: false, isBleeding: false, intimacy: [], weight: null, location: 'IN', notes: '' };
                     appData.logs[target].isBleeding = true;
                 }
             } else {
@@ -607,6 +636,8 @@
             }
 
             appData.logs[d].weight = document.getElementById('modalDailyWeight').value ? parseFloat(document.getElementById('modalDailyWeight').value) : null;
+           appData.logs[d].location = locVal;
+            appData.logs[d].notes = document.getElementById('modalDailyNotes').value;
             appData.logs[d].intimacy = JSON.parse(JSON.stringify(currentIntimacyEntries));
             
             window.commitData(); 
@@ -648,7 +679,7 @@
                 else if (dDate >= insights.fS && dDate <= insights.fE) { fill = dDate === insights.ovu ? 'var(--risk-max)' : 'var(--risk-med)'; } 
                 else if (dDate < insights.fS) { fill = 'var(--risk-low)'; }
 
-               if (i === insights.cDay) { radius = 6; stroke = 'var(--text-main)'; sw = 1.5; }
+                if (i === insights.cDay) { radius = 6; stroke = 'var(--text-main)'; sw = 1.5; }
                 
                 const dateNum = new Date(dDate).getDate();
                 svgHTML += `<circle cx="${x}" cy="${y}" r="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" />`;
@@ -662,17 +693,16 @@
             const ins = getCycleInsights();
             const dayEl = document.getElementById('currentCycleDay');
             const today = formatYMD(new Date());
-            
             document.getElementById('homeTodayDate').innerText = formatDDMMYYYY(today);
 
            if(!ins) {
-                dayEl.innerText = "--"; document.getElementById('nextPeriodDate').innerText = "--.--.----";
-                document.getElementById('ovulationDate').innerText = "--.--.----";
-                document.getElementById('pregnancyRiskHome').innerText = "Risk: --";
-                document.getElementById('cycleSvgOverlay').innerHTML = '';
-                document.getElementById('homeEggStatus').innerHTML = '<i class="fa-solid fa-circle-info text-white/70 mt-0.5"></i> <span>Please log your period start date.</span>';
+                dayEl.innerText = "--"; 
+                document.getElementById('nextPeriodDate').innerText = "--.--.----";
                 document.getElementById('capsuleRiskBadge').innerText = "Risk: --";
                 document.getElementById('statusCapsule').style.backgroundColor = "var(--text-muted)";
+                document.getElementById('riskWatermark').innerText = "--";
+                document.getElementById('homeEggStatusText').innerText = "Please log your period";
+                document.getElementById('cycleSvgOverlay').innerHTML = '';
                 return;
             }
             
@@ -681,39 +711,65 @@
             
             document.getElementById('nextPeriodDate').innerText = formatDDMMYYYY(ins.next);
             document.getElementById('daysTillNextPeriod').innerText = ins.dLeft >= 0 ? `${ins.dLeft} days left` : `${Math.abs(ins.dLeft)} days late`;
-            document.getElementById('ovulationDate').innerText = formatDDMMYYYY(ins.ovu);
             
-            let rLabel = "Low", rColor = "var(--risk-low)";
-            let eggInfo = "Follicular phase. Egg is maturing in the ovary. Safe window.";
-            let iconStr = '<i class="fa-solid fa-shield-heart text-white/90 mt-0.5"></i>';
+            let rLabel = "Low", rColor = "var(--risk-low)", shortText = "Safe Phase";
 
             if (ins.cDay <= appData.settings.bleedingDays || appData.logs[today]?.isBleeding) {
-                eggInfo = "Menstruation phase. Uterine lining is shedding. Safe window.";
-                rLabel = "Low"; rColor = "var(--risk-low)";
+                shortText = "Menstruation";
             } else if(today >= ins.fS && today <= ins.fE) {
                 rLabel = today === ins.ovu ? "Peak" : "High";
                 rColor = today === ins.ovu ? "var(--risk-max)" : "var(--risk-high)";
-                eggInfo = today === ins.ovu ? "Ovulation Day! Egg is released and waiting in fallopian tube. Peak Pregnancy Chance." : "Fertile Window! Egg is preparing to be released soon. High Risk.";
-                iconStr = '<i class="fa-solid fa-triangle-exclamation text-white/90 mt-0.5"></i>';
+                shortText = today === ins.ovu ? "Ovulation Day!" : "Fertile Window";
             } else if (today > ins.fE && today <= addDays(ins.fE, 2)) {
                 rLabel = "Medium"; rColor = "var(--risk-med)";
-                eggInfo = "Post-ovulation. Egg lifespan is ending. Medium risk.";
-                iconStr = '<i class="fa-solid fa-circle-exclamation text-white/90 mt-0.5"></i>';
-            } else if (today > addDays(ins.fE, 2)) {
-                eggInfo = "Luteal phase. The unfertilized egg is dissolving. Safe window.";
+                shortText = "Post-Ovulation";
             }
 
-            document.getElementById('pregnancyRiskHome').innerText = `Risk: ${rLabel}`;
             document.getElementById('capsuleRiskBadge').innerText = `Risk: ${rLabel}`;
+            document.getElementById('riskWatermark').innerText = rLabel;
             document.getElementById('statusCapsule').style.backgroundColor = rColor;
-            document.getElementById('homeEggStatus').innerHTML = `${iconStr} <span>${eggInfo}</span>`;
+            document.getElementById('homeEggStatusText').innerText = shortText;
             
             drawCycleDotsSVG(ins);
+            
+            if(homeRiskChartInst) homeRiskChartInst.destroy();
+            const len = appData.settings.cycleLength;
+            let lbls = [], riskData = [], ptColors = [], ptRadii = [];
+            for(let i=0; i<len; i++) {
+                const dDate = addDays(ins.start, i);
+                lbls.push(i+1);
+                let val = 1, col = 'var(--risk-low)';
+                if (i <= appData.settings.bleedingDays || appData.logs[dDate]?.isBleeding) col = 'var(--risk-high)';
+                else if (dDate >= ins.fS && dDate <= ins.fE) { val = dDate === ins.ovu ? 4 : 3; col = dDate === ins.ovu ? 'var(--risk-max)' : 'var(--risk-high)'; }
+                else if (dDate > ins.fE && dDate <= addDays(ins.fE, 2)) { val = 2; col = 'var(--risk-med)'; }
+                
+                riskData.push(val); ptColors.push(col);
+                ptRadii.push(dDate === today ? 6 : 0); // Present day point
+            }
+            const ctxH = document.getElementById('homeRiskChart').getContext('2d');
+            homeRiskChartInst = new Chart(ctxH, {
+                type: 'line',
+                data: { 
+                    labels: lbls, 
+                    datasets: [{ 
+                        data: riskData, 
+                        segment: { borderColor: ctx => ptColors[ctx.p1DataIndex] },
+                        backgroundColor: 'rgba(0,0,0,0.03)', tension: 0.4, fill: true, 
+                        pointBackgroundColor: ptColors, pointBorderColor: '#fff', pointRadius: ptRadii, pointHoverRadius: ptRadii
+                    }] 
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false, max: 4.5 }, x: { display: false } }, plugins: { legend: { display: false }, tooltip: {enabled: false} } }
+            });
         };
+      
+      
 
         window.renderGraphs = () => {
             const ins = getCycleInsights(), len = appData.settings.cycleLength;
             Chart.defaults.font.family = "'Inter', sans-serif";
+          setTimeout(() => {
+                document.querySelectorAll('#graphs .overflow-x-auto').forEach(el => el.scrollLeft = el.scrollWidth);
+            }, 100);
             
             if(riskChartInst) riskChartInst.destroy();
             if(ins) {
@@ -762,7 +818,7 @@
             });
         };
 
-        window.compileReport = () => {
+      window.compileReport = () => {
             document.getElementById('printCycleLen').innerText = `${appData.settings.cycleLength} Days`;
             const container = document.getElementById('dynamicReportContainer');
             container.innerHTML = '';
@@ -773,20 +829,69 @@
                 return;
             }
 
+            let totalCycles = starts.length, totalBleeding = 0, totalIntimacy = 0, sumAllWeight = 0, countAllWeight = 0;
+            let cycleChartConfigs = [];
+            
+            starts.forEach((s, i) => {
+                const nextS = starts[i+1] || null;
+                const cDates = Object.keys(appData.logs).filter(d => {
+                    const cd = new Date(d), sd = new Date(s);
+                    return nextS ? (cd >= sd && cd < new Date(nextS)) : cd >= sd;
+                });
+                cDates.forEach(d => {
+                    if(appData.logs[d].isBleeding) totalBleeding++;
+                    if(appData.logs[d].intimacy) totalIntimacy += appData.logs[d].intimacy.length;
+                    if(appData.logs[d].weight) { sumAllWeight += appData.logs[d].weight; countAllWeight++; }
+                });
+            });
+
+            const avgBleeding = (totalBleeding / totalCycles).toFixed(1);
+            const avgIntimacy = (totalIntimacy / totalCycles).toFixed(1);
+            const avgWeight = countAllWeight > 0 ? (sumAllWeight / countAllWeight).toFixed(1) : '-';
+
+            const grandSummary = `
+                <div class="custom-card !p-0 !overflow-hidden mb-5 border-2 border-slate-800 first-page-print">
+                    <div class="bg-slate-800 text-white text-xs font-black p-2 text-center uppercase tracking-widest">Master Summary</div>
+                    <div class="grid grid-cols-4 divide-x divide-slate-200 text-center py-3 bg-slate-50">
+                        <div><span class="block text-[8px] text-slate-400 uppercase font-bold">Total Cycles</span><strong class="text-sm text-slate-800">${totalCycles}</strong></div>
+                        <div><span class="block text-[8px] text-slate-400 uppercase font-bold">Avg Bleed</span><strong class="text-sm text-rose-600">${avgBleeding} Days</strong></div>
+                        <div><span class="block text-[8px] text-slate-400 uppercase font-bold">Avg Weight</span><strong class="text-sm text-sky-600">${avgWeight} kg</strong></div>
+                        <div><span class="block text-[8px] text-slate-400 uppercase font-bold">Avg Intimacy</span><strong class="text-sm text-purple-600">${avgIntimacy}</strong></div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', grandSummary);
+
             for(let i = starts.length - 1; i >= 0; i--) {
                 const sDate = starts[i], nextSDate = starts[i+1] || null;
-                const endShowDate = nextSDate ? addDays(nextSDate, -1) : 'Present';
-                const labelPeriod = `${formatDDMMYYYY(sDate)} to ${nextSDate ? formatDDMMYYYY(endShowDate) : 'Present'}`;
+                const endShowDate = nextSDate ? addDays(nextSDate, -1) : formatYMD(new Date());
+                const labelPeriod = `${formatDDMMYYYY(sDate)} to ${formatDDMMYYYY(endShowDate)}`;
                 
                 let countBleeding = 0, sumWeight = 0, countWeight = 0, countIntimacy = 0;
+                const cycleLenDays = nextSDate ? diffDays(sDate, nextSDate) : diffDays(sDate, formatYMD(new Date())) + 1;
+                
+                const cycleOvu = addDays(sDate, cycleLenDays > 20 ? cycleLenDays - 14 : 14);
+                const cFs = addDays(cycleOvu, -5), cFe = addDays(cycleOvu, 1);
+                let cRiskData = [], cPtColors = [], cLbls = [];
+                const graphLen = nextSDate ? cycleLenDays : appData.settings.cycleLength;
 
-                const cDates = Object.keys(appData.logs).filter(d => {
-                    const cd = new Date(d), sd = new Date(sDate);
-                    return nextSDate ? (cd >= sd && cd < new Date(nextSDate)) : cd >= sd;
-                }).sort((a,b)=>new Date(b)-new Date(a));
+                for(let j=0; j<graphLen; j++) {
+                    const dDate = addDays(sDate, j);
+                    cLbls.push(j+1);
+                    let val = 1, col = '#10B981';
+                    if (j <= appData.settings.bleedingDays || appData.logs[dDate]?.isBleeding) col = '#EF4444';
+                    else if (dDate >= cFs && dDate <= cFe) { val = dDate === cycleOvu ? 4 : 3; col = dDate === cycleOvu ? '#9333EA' : '#EF4444'; }
+                    else if (dDate > cFe && dDate <= addDays(cFe, 2)) { val = 2; col = '#F59E0B'; }
+                    cRiskData.push(val); cPtColors.push(col);
+                }
+                cycleChartConfigs.push({ id: `cycleChart_${i}`, labels: cLbls, data: cRiskData, colors: cPtColors });
 
-                cDates.forEach(d => {
-                    const l = appData.logs[d];
+                let allDates = [];
+                for(let j=0; j<cycleLenDays; j++) allDates.push(addDays(sDate, j));
+                allDates.reverse();
+
+                allDates.forEach(d => {
+                    const l = appData.logs[d] || {};
                     if(l.isBleeding) countBleeding++;
                     if(l.weight) { sumWeight += l.weight; countWeight++; }
                     if(l.intimacy && l.intimacy.length > 0) countIntimacy += l.intimacy.length;
@@ -796,53 +901,88 @@
                 let html = `
                 <div class="cycle-report-group custom-card !p-0 !overflow-hidden mb-5">
                     <div class="cycle-report-header flex justify-between items-center text-xs p-3">
-                        <span class="font-bold text-slate-700"><i class="fa-solid fa-rotate-left text-emerald-500 mr-1"></i> Cycle: ${labelPeriod}</span>
+                        <span class="font-bold text-slate-700"><i class="fa-solid fa-rotate-left text-emerald-500 mr-1"></i> Cycle: ${labelPeriod} (${cycleLenDays} Days)</span>
                     </div>
+                    
+                    <div class="px-3 py-2 border-b border-slate-200">
+                        <p class="text-[9px] font-bold uppercase text-slate-500 mb-1">Cycle Risk Graph</p>
+                        <div class="w-full h-[80px] relative"><canvas id="cycleChart_${i}"></canvas></div>
+                    </div>
+
                     <div class="summary-grid bg-slate-50 border-b border-slate-200 grid grid-cols-3 divide-x divide-slate-200 text-center py-2">
-                        <div><span class="block text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-1">Bleeding</span><strong class="text-xs text-rose-600">${countBleeding} Days</strong></div>
-                        <div><span class="block text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-1">Avg Weight</span><strong class="text-xs text-sky-600">${avgWeightStr} kg</strong></div>
-                        <div><span class="block text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-1">Total Intimacy</span><strong class="text-xs text-purple-600">${countIntimacy} Times</strong></div>
+                        <div><span class="block text-[8px] text-slate-400 uppercase font-bold">Bleeding</span><strong class="text-xs text-rose-600">${countBleeding} Days</strong></div>
+                        <div><span class="block text-[8px] text-slate-400 uppercase font-bold">Avg Wt</span><strong class="text-xs text-sky-600">${avgWeightStr} kg</strong></div>
+                        <div><span class="block text-[8px] text-slate-400 uppercase font-bold">Intimacy</span><strong class="text-xs text-purple-600">${countIntimacy}</strong></div>
                     </div>
-                    <div class="overflow-x-auto p-2">
-                        <table class="w-full text-[10px] text-left">
-                            <thead><tr class="text-slate-500 border-b border-slate-200"><th class="p-2">Date</th><th class="p-2">Status</th><th class="p-2">Weight</th><th class="p-2">Intimacy Log</th></tr></thead>
+                    <div class="overflow-x-auto p-0">
+                        <table class="w-full text-[9px] text-left leading-tight">
+                            <thead><tr class="text-slate-500 bg-slate-100 border-b border-slate-200"><th class="p-1.5">Date</th><th class="p-1.5">Status</th><th class="p-1.5">Location</th><th class="p-1.5">Intimacy</th><th class="p-1.5">Notes & Wt</th></tr></thead>
                             <tbody class="text-slate-700 font-medium">`;
 
-                if(cDates.length === 0) {
-                    html += `<tr><td colspan="4" class="p-2 text-center text-slate-400">No logs during this cycle.</td></tr>`;
-                } else {
-                    cDates.forEach(d => {
-                        const l = appData.logs[d];
-                        if(!l.isStart && !l.isBleeding && !l.weight && (!l.intimacy || l.intimacy.length===0)) return;
-                        
-                        let sts = [];
-                        if(l.isStart) sts.push('<span class="bg-rose-100 text-rose-700 px-1 rounded">Start</span>');
-                        if(l.isBleeding) sts.push('<span class="text-rose-600 font-bold">Bleeding</span>');
-                        
-                        let intHTML = '-';
-                        if(l.intimacy && l.intimacy.length > 0) {
-                            intHTML = l.intimacy.map(int => {
-                                let timeStr = int.time ? `<span class="text-slate-400 font-normal">(${int.time})</span>` : '';
-                                if(int.type === 'protected') return `<span class="text-emerald-600"><i class="fa-solid fa-shield"></i> P ${timeStr}</span>`;
-                                return `<span class="text-rose-600"><i class="fa-solid fa-triangle-exclamation"></i> U ${timeStr}</span>`;
-                            }).join('<br>');
-                        }
+                allDates.forEach(d => {
+                    const l = appData.logs[d] || {};
+                    
+                    let sts = [];
+                    if(l.isStart) sts.push('<span class="bg-rose-100 text-rose-700 px-1 rounded">Start</span>');
+                    if(l.isBleeding) sts.push('<i class="fa-solid fa-droplet text-rose-600 text-xs" title="Bleeding"></i>');
+                    
+                    let wtBadge = l.weight ? `<span class="text-sky-600 font-bold">${l.weight}kg</span>` : '';
+                    let notesTxt = l.notes ? l.notes : '';
+                    let combinedNotes = [wtBadge, notesTxt].filter(Boolean).join(' | ');
+                    if(!combinedNotes) combinedNotes = '-';
+                    
+                    let intHTML = '-';
+                  if(l.intimacy && l.intimacy.length > 0) {
+                        intHTML = l.intimacy.map(int => {
+                            let timeStr = int.time ? `(${int.time})` : '';
+                            if(int.type === 'protected') return `<span class="text-emerald-600 whitespace-nowrap">P ${timeStr}</span>`;
+                            return `<span class="text-rose-600 whitespace-nowrap">U ${timeStr}</span>`;
+                        }).join('<span class="mx-1.5 text-slate-300">|</span>');
+                    }
 
-                        html += `<tr class="border-b border-slate-100 hover:bg-slate-50">
-                            <td class="p-2 font-bold">${formatDDMMYYYY(d)}</td><td class="p-2 text-[9px]">${sts.length ? sts.join(' ') : '-'}</td>
-                            <td class="p-2">${l.weight ? l.weight+'kg' : '-'}</td><td class="p-2 text-[9px]">${intHTML}</td>
-                        </tr>`;
-                    });
-                }
+                    let locBadge = l.location ? l.location : '';
+                    if(locBadge === 'OUT') locBadge = '<span class="bg-amber-100 text-amber-700 px-1 rounded">OUT</span>';
+                    if(!locBadge) locBadge = '-';
+
+                    let statusStr = sts.length ? sts.join(' ') : '-';
+
+                    html += `<tr class="border-b border-slate-100 hover:bg-slate-50">
+                        <td class="p-1.5 font-bold whitespace-nowrap">${formatDDMMYYYY(d)}</td>
+                        <td class="p-1.5 flex gap-1 items-center">${statusStr}</td>
+                        <td class="p-1.5 font-bold uppercase text-[8px]">${locBadge}</td>
+                        <td class="p-1.5">${intHTML}</td>
+                        <td class="p-1.5 text-[8px] text-slate-500">${combinedNotes}</td>
+                    </tr>`;
+                });
+                
                 html += `</tbody></table></div></div>`;
                 container.insertAdjacentHTML('beforeend', html);
             }
-        };
 
+            setTimeout(() => {
+                cycleChartConfigs.forEach(config => {
+                    const canvas = document.getElementById(config.id);
+                    if(canvas) {
+                        new Chart(canvas.getContext('2d'), {
+                            type: 'line',
+                            data: { 
+                                labels: config.labels, 
+                                datasets: [{ 
+                                    data: config.data, 
+                                    segment: { borderColor: ctx => config.colors[ctx.p1DataIndex] }, 
+                                    backgroundColor: 'rgba(0,0,0,0.02)', tension: 0.4, fill: true, pointRadius: 0 
+                                }] 
+                            },
+                            options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false, max: 4.5 }, x: { display: false } }, plugins: { legend: { display: false } } }
+                        });
+                    }
+                });
+            }, 100);
+        };
         window.onload = window.loadSavedDatabase;
     </script>
-  	<script>
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
-</script>
+    <script>
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
+    </script>
 </body>
 </html>
