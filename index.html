@@ -38,29 +38,19 @@
         body {
             background-color: var(--bg-main); color: var(--text-main);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            transition: all 0.3s ease; padding-bottom: 100px;
+            transition: all 0.3s ease; padding-bottom: 70px;
         }
-
-        .glass-panel {
-            background-color: color-mix(in srgb, var(--bg-card) 85%, transparent);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-        }
-
         .custom-card {
             background-color: var(--bg-card); border-radius: 1rem;
             box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
             padding: 1rem; margin-bottom: 1rem; border: 1px solid var(--card-border);
         }
-        
         .btn-primary {
             background-color: var(--accent-color); color: white; border-radius: 999px;
             font-weight: 700; transition: all 0.2s ease; border: none; cursor: pointer;
             box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.15);
         }
-        .btn-primary:active, .pulse-btn:active, .nav-item:active { transform: scale(0.92); }
-        
+        .btn-primary:active { transform: scale(0.98); }
         .input-field {
             width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.5rem;
             border: 1.5px solid var(--accent-light); background-color: var(--bg-main);
@@ -70,15 +60,11 @@
         .input-field:focus { border-color: var(--accent-color); }
 
         .bottom-nav {
-            position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
-            width: calc(100% - 2rem); max-width: 28rem; 
-            background-color: color-mix(in srgb, var(--nav-bg) 85%, transparent);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            display: flex; justify-content: space-around; 
-            padding: 0.75rem 0.5rem; border-radius: 999px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05); 
-            z-index: 50; border: 1px solid rgba(255,255,255,0.4);
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; background-color: var(--nav-bg); display: flex;
+            justify-content: space-around; padding: 0.5rem;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05); z-index: 50;
+            border-top: 1px solid rgba(0,0,0,0.05);
         }
         .nav-item {
             color: var(--text-muted); display: flex; flex-direction: column;
@@ -92,12 +78,12 @@
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        #toast {
-            position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150%);
-            background-color: var(--accent-dark); color: white; padding: 0.75rem 1.5rem;
-            border-radius: 99px; box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+       #toast {
+            position: fixed; top: 15px; left: 50%; transform: translate(-50%, -150%);
+            background-color: var(--text-main); color: white; padding: 0.35rem 0.8rem;
+            border-radius: 99px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 1000; font-size: 0.875rem; font-weight: bold; display: flex; align-items: center; gap: 0.5rem;
+            z-index: 1000; font-size: 0.7rem; font-weight: 500; display: flex; align-items: center; gap: 0.4rem;
         }
         #toast.show { transform: translate(-50%, 0); }
 
@@ -146,7 +132,7 @@
 </head>
 <body class="max-w-md mx-auto relative min-h-screen px-3 sm:max-w-lg">
 
-    <header class="py-3 flex justify-between items-center no-print sticky top-0 z-40 bg-opacity-80 backdrop-blur-xl" style="background-color: color-mix(in srgb, var(--bg-main) 80%, transparent);">
+    <header class="py-3 flex justify-between items-center no-print sticky top-0 z-40 bg-opacity-90 backdrop-blur-md" style="background-color: var(--bg-main);">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm shadow-sm" style="background-color: var(--accent-color)">
                 <i class="fa-solid fa-droplet"></i>
@@ -157,10 +143,10 @@
             </div>
         </div>
         <div class="flex items-center gap-2">
-            <button onclick="toggleQuickTheme()" class="w-8 h-8 rounded-full flex items-center justify-center bg-white border shadow-sm text-xs transition-transform active:scale-95" style="color: var(--accent-color); border-color: var(--accent-light)" title="Change Theme">
+            <button onclick="toggleQuickTheme()" class="w-8 h-8 rounded-full flex items-center justify-center bg-white border shadow-sm text-xs" style="color: var(--accent-color); border-color: var(--accent-light)" title="Change Theme">
                 <i class="fa-solid fa-palette"></i>
             </button>
-            <button onclick="openAuthModal()" id="authIconBtn" class="w-8 h-8 rounded-full flex items-center justify-center bg-white border shadow-sm text-xs transition-all active:scale-95" style="color: var(--accent-color); border-color: var(--accent-light)" title="Account / Sync">
+            <button onclick="openAuthModal()" id="authIconBtn" class="w-8 h-8 rounded-full flex items-center justify-center bg-white border shadow-sm text-xs transition-colors" style="color: var(--accent-color); border-color: var(--accent-light)" title="Account / Sync">
                 <i class="fa-regular fa-user"></i>
             </button>
         </div>
@@ -170,50 +156,50 @@
         <i class="fa-solid fa-circle-info"></i> <span id="toastText">Message</span>
     </div>
 
-    <div id="authModal" class="fixed inset-0 bg-slate-900/40 z-[200] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
-        <div class="glass-panel rounded-2xl w-full max-w-sm p-5 shadow-2xl scale-95 transition-transform">
+    <div id="authModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl scale-95 transition-transform" style="background-color: var(--bg-card);">
             <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
                 <h3 class="font-black text-lg flex items-center gap-2" style="color: var(--text-main)">
                     <i class="fa-solid fa-cloud-arrow-up" style="color: var(--accent-color)"></i> Cloud Sync
                 </h3>
-                <button onclick="closeModal('authModal')" class="text-slate-400 hover:text-slate-600 active:scale-90 transition-transform"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <button onclick="closeModal('authModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <div class="space-y-3">
-                <input type="email" id="authEmail" placeholder="Email Address" class="input-field py-2 bg-white/50">
-                <input type="password" id="authPass" placeholder="Password" class="input-field py-2 bg-white/50">
+                <input type="email" id="authEmail" placeholder="Email Address" class="input-field py-2">
+                <input type="password" id="authPass" placeholder="Password" class="input-field py-2">
                 <div class="flex gap-2 mt-4">
                     <button onclick="sakhiAuthAction(false)" class="btn-primary flex-1 py-2 text-sm shadow-md">Login</button>
-                    <button onclick="sakhiAuthAction(true)" class="bg-white/60 hover:bg-white/80 text-slate-700 flex-1 py-2 rounded-full font-bold text-sm transition-all border border-slate-200 active:scale-95">Register</button>
+                    <button onclick="sakhiAuthAction(true)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 flex-1 py-2 rounded-full font-bold text-sm transition-colors border border-slate-200">Register</button>
                 </div>
-                <p class="text-[9px] text-center text-slate-500 mt-2"><i class="fa-solid fa-shield-halved"></i> Your data will be securely synced.</p>
+                <p class="text-[9px] text-center text-slate-400 mt-2"><i class="fa-solid fa-shield-halved"></i> Your data will be securely synced.</p>
             </div>
         </div>
     </div>
 
-    <div id="accountModal" class="fixed inset-0 bg-slate-900/40 z-[200] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
-        <div class="glass-panel rounded-2xl w-full max-w-sm p-5 shadow-2xl scale-95 transition-transform text-center">
-            <div class="flex justify-end"><button onclick="closeModal('accountModal')" class="text-slate-400 hover:text-slate-600 active:scale-90 transition-transform"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+    <div id="accountModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl scale-95 transition-transform text-center" style="background-color: var(--bg-card);">
+            <div class="flex justify-end"><button onclick="closeModal('accountModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button></div>
             <div class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl text-white mb-2 shadow-lg" style="background-color: var(--accent-color)"><i class="fa-solid fa-user"></i></div>
             <h3 class="font-black text-lg mb-1" style="color: var(--text-main)">Account Active</h3>
-            <p class="text-xs text-emerald-600 font-bold mb-5 bg-emerald-50/80 inline-block px-3 py-1 rounded-full border border-emerald-100"><i class="fa-solid fa-cloud-check"></i> Safely Synced to Cloud</p>
-            <button onclick="sakhiLogout()" class="w-full py-2.5 text-rose-500 border border-rose-200 bg-white/60 hover:bg-rose-50 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 active:scale-95">
+            <p class="text-xs text-emerald-500 font-bold mb-5 bg-emerald-50 inline-block px-3 py-1 rounded-full border border-emerald-100"><i class="fa-solid fa-cloud-check"></i> Safely Synced to Cloud</p>
+            <button onclick="sakhiLogout()" class="w-full py-2.5 text-rose-500 border border-rose-200 bg-rose-50 rounded-xl hover:bg-rose-100 font-bold text-sm transition-colors flex items-center justify-center gap-2">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
             </button>
         </div>
     </div>
 
-    <div id="dailyLogModal" class="fixed inset-0 bg-slate-900/40 z-[200] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
-        <div class="glass-panel rounded-2xl w-full max-w-sm p-4 shadow-2xl scale-95 transition-transform overflow-y-auto max-h-[90vh]" id="dailyLogModalContent">
-            <div class="flex justify-between items-center mb-3 border-b border-slate-100/50 pb-2">
+    <div id="dailyLogModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-4 shadow-2xl scale-95 transition-transform overflow-y-auto max-h-[90vh]" id="dailyLogModalContent" style="background-color: var(--bg-card);">
+            <div class="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
                 <h3 class="font-black text-base flex items-center gap-2" style="color: var(--text-main)">
                     <i class="fa-solid fa-book-medical" style="color: var(--accent-color)"></i> Daily Log
                 </h3>
-                <input type="date" id="dailyModalDate" class="text-xs font-bold border border-slate-200 rounded p-1 bg-white/50 outline-none text-slate-700" onchange="loadDailyModalData()">
-                <button onclick="closeModal('dailyLogModal')" class="text-slate-400 hover:text-slate-600 ml-2 active:scale-90 transition-transform"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <input type="date" id="dailyModalDate" class="text-xs font-bold border rounded p-1 bg-slate-50 outline-none text-slate-700" onchange="loadDailyModalData()">
+                <button onclick="closeModal('dailyLogModal')" class="text-slate-400 hover:text-slate-600 ml-2"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             
             <div class="space-y-3">
-                <div class="bg-rose-50/70 border border-rose-200/60 rounded-xl p-2.5 flex justify-between items-center shadow-sm">
+                <div class="bg-rose-50 border border-rose-200 rounded-xl p-2.5 flex justify-between items-center shadow-sm">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-rose-500"><i class="fa-solid fa-calendar-plus"></i></div>
                         <div>
@@ -228,27 +214,25 @@
                 </div>
 
                 <div class="flex gap-2">
-                    <label class="flex-1 flex items-center justify-between bg-white/60 border border-slate-200 p-2 rounded-xl cursor-pointer shadow-sm transition-colors hover:bg-white/90">
+                    <label class="flex-1 flex items-center justify-between bg-slate-50 border border-slate-200 p-2 rounded-xl cursor-pointer shadow-sm transition-colors hover:bg-slate-100">
                         <span class="text-xs font-bold text-slate-700"><i class="fa-solid fa-droplet text-rose-500 mr-1"></i> Bleeding</span>
                         <input type="checkbox" id="modalDailyBleeding" class="w-4 h-4 accent-rose-500 rounded cursor-pointer">
                     </label>
-                    <div class="flex-1 bg-white/60 border border-slate-200 rounded-xl flex items-center px-2 shadow-sm">
+                    <div class="flex-1 bg-slate-50 border border-slate-200 rounded-xl flex items-center px-2 shadow-sm">
                         <i class="fa-solid fa-weight-scale text-sky-500 text-xs mr-1"></i>
                         <input type="number" id="modalDailyWeight" class="w-full bg-transparent outline-none text-xs font-bold text-slate-700 py-2" step="0.1" placeholder="Weight">
                     </div>
-                    <div class="relative w-24">
-                        <input type="text" id="modalDailyLocation" placeholder="Loc" class="bg-white/60 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 px-2 py-2 shadow-sm outline-none w-full uppercase">
-                    </div>
+                    
                 </div>
 
-                <div class="bg-white/60 border border-slate-200 rounded-xl shadow-sm overflow-hidden mt-3">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl shadow-sm overflow-hidden mt-3">
                     <textarea id="modalDailyNotes" rows="2" placeholder="Write today's notes here..." class="w-full bg-transparent outline-none text-[11px] text-slate-700 p-2 resize-none"></textarea>
                 </div>
 
-                <div class="bg-white/40 p-2.5 rounded-xl border border-slate-200/50 shadow-sm mt-3">
-                    <div class="flex justify-between items-center mb-2 border-b border-slate-200/50 pb-1">
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 shadow-sm mt-3">
+                    <div class="flex justify-between items-center mb-2 border-b border-slate-200 pb-1">
                         <label class="compact-label"><i class="fa-solid fa-heart text-rose-400"></i> Intimacy Log</label>
-                        <button onclick="addIntimacyRow()" class="text-[10px] bg-white/80 border border-slate-200 hover:bg-slate-100 px-2 py-1 rounded font-bold text-slate-700 transition-all active:scale-95"><i class="fa-solid fa-plus"></i> Add Event</button>
+                        <button onclick="addIntimacyRow()" class="text-[10px] bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded font-bold text-slate-700 transition-colors"><i class="fa-solid fa-plus"></i> Add Event</button>
                     </div>
                     <div id="intimacyListContainer" class="space-y-2 max-h-40 overflow-y-auto">
                     </div>
@@ -278,13 +262,13 @@
                 <div class="progress-inner">
                     <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0">Day</span>
                     <h1 class="text-6xl font-black leading-none tracking-tighter mb-2" id="currentCycleDay">--</h1>
-                    <button onclick="openDailyLogModal()" class="pulse-btn flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-md transition-transform" style="background-color: var(--accent-color);">
+                    <button onclick="openDailyLogModal()" class="pulse-btn flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-md transition-transform active:scale-95" style="background-color: var(--accent-color);">
                         <i class="fa-solid fa-pen-to-square"></i> Log Today
                     </button>
                 </div>
             </div>
             
-            <div class="mx-auto max-w-[90%] bg-white/60 border border-slate-200 rounded-full px-4 py-2 mt-4 shadow-sm flex justify-between items-center backdrop-blur-sm">
+            <div class="mx-auto max-w-[90%] bg-slate-50 border border-slate-200 rounded-full px-4 py-2 mt-4 shadow-sm flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <div class="w-6 h-6 rounded-full bg-rose-100 flex items-center justify-center text-rose-500"><i class="fa-regular fa-calendar-check text-[10px]"></i></div>
                     <div class="text-left"><p class="text-[9px] font-bold uppercase text-slate-500 leading-none">Next Period</p><p class="text-xs font-black text-slate-800 leading-none mt-1" id="nextPeriodDate">--.--.----</p></div>
@@ -294,7 +278,7 @@
 
             <div class="mt-4 border-t border-slate-100 pt-3">
                 <p class="text-[9px] font-bold uppercase text-slate-500 mb-2 text-left px-2"><i class="fa-solid fa-chart-area text-rose-400 mr-1"></i> Current Cycle Risk Graph</p>
-                <div class="w-full bg-slate-50/50 p-1.5 rounded-xl border border-slate-100 h-[100px] relative"><canvas id="homeRiskChart"></canvas></div>
+                <div class="w-full bg-slate-50 p-1.5 rounded-xl border border-slate-100 h-[100px] relative"><canvas id="homeRiskChart"></canvas></div>
             </div>
         </div>
     </main>
@@ -304,21 +288,21 @@
             <div class="flex justify-between items-center mb-2">
                 <h2 class="text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-line text-rose-500"></i> Pregnancy Risk (Current Cycle)</h2>
             </div>
-            <div class="w-full overflow-x-auto bg-slate-50/50 p-1.5 rounded-xl border border-slate-100">
+            <div class="w-full overflow-x-auto bg-slate-50 p-1.5 rounded-xl border border-slate-100">
                 <div class="min-w-[450px] h-[180px] relative"><canvas id="riskChart"></canvas></div>
             </div>
         </div>
 
         <div class="custom-card mt-2">
             <h2 class="text-xs font-bold mb-2 flex items-center gap-1.5"><i class="fa-solid fa-weight-scale text-sky-500"></i> Weight Trend Log</h2>
-            <div class="w-full overflow-x-auto bg-slate-50/50 p-1.5 rounded-xl border border-slate-100">
+            <div class="w-full overflow-x-auto bg-slate-50 p-1.5 rounded-xl border border-slate-100">
                 <div class="min-w-[400px] h-[180px] relative"><canvas id="weightChart"></canvas></div>
             </div>
         </div>
 
         <div class="custom-card mt-2">
             <h2 class="text-xs font-bold mb-2 flex items-center gap-1.5"><i class="fa-solid fa-heart text-rose-400"></i> Intimacy Activity (All Time)</h2>
-            <div class="w-full overflow-x-auto bg-slate-50/50 p-1.5 rounded-xl border border-slate-100">
+            <div class="w-full overflow-x-auto bg-slate-50 p-1.5 rounded-xl border border-slate-100">
                 <div class="min-w-[400px] h-[180px] relative"><canvas id="intimacyChart"></canvas></div>
             </div>
         </div>
@@ -352,31 +336,31 @@
             </h2>
             <div class="mb-4">
                 <label class="compact-label block mb-2">Select Theme:</label>
-                <div class="grid grid-cols-5 gap-2 bg-slate-50/50 p-2 rounded-xl border border-slate-100">
-                    <button onclick="setTheme('blossom')" class="aspect-square rounded-lg bg-[#FF5A8D] shadow text-white text-xs font-bold transition-transform active:scale-90">B</button>
-                    <button onclick="setTheme('ocean')" class="aspect-square rounded-lg bg-[#0ea5e9] shadow text-white text-xs font-bold transition-transform active:scale-90">O</button>
-                    <button onclick="setTheme('mint')" class="aspect-square rounded-lg bg-[#10b981] shadow text-white text-xs font-bold transition-transform active:scale-90">M</button>
-                    <button onclick="setTheme('lavender')" class="aspect-square rounded-lg bg-[#a855f7] shadow text-white text-xs font-bold transition-transform active:scale-90">L</button>
-                    <button onclick="setTheme('midnight')" class="aspect-square rounded-lg bg-[#0F172A] shadow text-white text-xs font-bold transition-transform active:scale-90">D</button>
+                <div class="grid grid-cols-5 gap-2 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                    <button onclick="setTheme('blossom')" class="aspect-square rounded-lg bg-[#FF5A8D] shadow text-white text-xs font-bold">B</button>
+                    <button onclick="setTheme('ocean')" class="aspect-square rounded-lg bg-[#0ea5e9] shadow text-white text-xs font-bold">O</button>
+                    <button onclick="setTheme('mint')" class="aspect-square rounded-lg bg-[#10b981] shadow text-white text-xs font-bold">M</button>
+                    <button onclick="setTheme('lavender')" class="aspect-square rounded-lg bg-[#a855f7] shadow text-white text-xs font-bold">L</button>
+                    <button onclick="setTheme('midnight')" class="aspect-square rounded-lg bg-[#0F172A] shadow text-white text-xs font-bold">D</button>
                 </div>
             </div>
             <div class="space-y-3">
-                <div class="bg-slate-50/50 p-2 rounded-xl border border-slate-100">
+                <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
                     <label class="compact-label block">Avg Cycle Length (Days)</label>
-                    <input type="number" id="settingCycle" class="input-field py-1.5 bg-white/60" value="28" min="20" max="45" onchange="saveSettings()">
+                    <input type="number" id="settingCycle" class="input-field py-1.5" value="28" min="20" max="45" onchange="saveSettings()">
                 </div>
-                <div class="bg-slate-50/50 p-2 rounded-xl border border-slate-100">
+                <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
                     <label class="compact-label block">Avg Bleeding (Days)</label>
-                    <input type="number" id="settingBleeding" class="input-field py-1.5 bg-white/60" value="5" min="2" max="10" onchange="saveSettings()">
+                    <input type="number" id="settingBleeding" class="input-field py-1.5" value="5" min="2" max="10" onchange="saveSettings()">
                 </div>
             </div>
-            <button onclick="confirmClearAllData()" class="mt-5 w-full py-2 text-red-500 border border-red-200 bg-red-50/60 rounded-xl hover:bg-red-100 font-bold flex items-center justify-center gap-2 text-xs transition-all active:scale-95">
+            <button onclick="confirmClearAllData()" class="mt-5 w-full py-2 text-red-500 border border-red-200 bg-red-50 rounded-xl hover:bg-red-100 font-bold flex items-center justify-center gap-2 text-xs transition-colors">
                 <i class="fa-solid fa-trash-can"></i> Erase All Data
             </button>
         </div>
     </main>
 
-    <nav class="bottom-nav no-print">
+    <nav class="bottom-nav no-print max-w-md sm:max-w-lg">
         <div class="nav-item active" onclick="switchTab('home')" data-target="home"><i class="fa-solid fa-house"></i><span>Home</span></div>
         <div class="nav-item" onclick="switchTab('graphs')" data-target="graphs"><i class="fa-solid fa-chart-line"></i><span>Graphs</span></div>
         <div class="nav-item" onclick="switchTab('report')" data-target="report"><i class="fa-solid fa-clipboard-list"></i><span>Report</span></div>
@@ -561,38 +545,19 @@
 
         window.openDailyLogModal = () => {
             document.getElementById('dailyModalDate').value = formatYMD(new Date());
-            window.loadDailyModalData(); 
-            window.openModal('dailyLogModal');
+            window.loadDailyModalData(); window.openModal('dailyLogModal');
         };
 
         window.loadDailyModalData = () => {
             const dateStr = document.getElementById('dailyModalDate').value;
             if(!dateStr) return;
+            const log = appData.logs[dateStr] || { isStart: false, isBleeding: false, weight: '', location: 'IN', notes: '', intimacy: [] };
             
-            const log = appData.logs[dateStr];
-            let defaultLoc = "";
-
-            if (log && log.location) {
-                defaultLoc = log.location;
-            } else {
-                const sortedDates = Object.keys(appData.logs).sort().reverse();
-                for (let d of sortedDates) {
-                    if (d < dateStr && appData.logs[d].location) {
-                        defaultLoc = appData.logs[d].location;
-                        break;
-                    }
-                }
-                if (!defaultLoc) defaultLoc = "HOME";
-            }
-
-            const currentLog = log || { isStart: false, isBleeding: false, weight: '', notes: '', intimacy: [] };
-            
-            document.getElementById('modalDailyStart').checked = !!currentLog.isStart;
-            document.getElementById('modalDailyBleeding').checked = !!currentLog.isBleeding;
-            document.getElementById('modalDailyWeight').value = currentLog.weight || '';
-            document.getElementById('modalDailyLocation').value = defaultLoc;
-            document.getElementById('modalDailyNotes').value = currentLog.notes || '';
-            currentIntimacyEntries = JSON.parse(JSON.stringify(currentLog.intimacy || []));
+            document.getElementById('modalDailyStart').checked = !!log.isStart;
+            document.getElementById('modalDailyBleeding').checked = !!log.isBleeding;
+           document.getElementById('modalDailyWeight').value = log.weight || '';
+            document.getElementById('modalDailyNotes').value = log.notes || '';
+            currentIntimacyEntries = JSON.parse(JSON.stringify(log.intimacy || []));
             window.renderIntimacyList();
         };
 
@@ -602,7 +567,7 @@
             }
         };
 
-        window.addIntimacyRow = () => { currentIntimacyEntries.push({ time: '', type: '' }); window.renderIntimacyList(); };
+       window.addIntimacyRow = () => { currentIntimacyEntries.push({ time: '', type: '', loc: 'HOME' }); window.renderIntimacyList(); };
         window.removeIntimacyRow = (idx) => { currentIntimacyEntries.splice(idx, 1); window.renderIntimacyList(); };
         window.updateIntimacyVal = (idx, field, val) => { currentIntimacyEntries[idx][field] = val; };
         
@@ -611,14 +576,19 @@
             if(currentIntimacyEntries.length === 0) { c.innerHTML = '<p class="text-[10px] text-slate-400 text-center py-1">No intimacy records today.</p>'; return; }
             currentIntimacyEntries.forEach((entry, i) => {
                 c.insertAdjacentHTML('beforeend', `
-                    <div class="flex items-center gap-2 bg-white/80 p-1.5 rounded border border-slate-100">
-                        <input type="time" onchange="updateIntimacyVal(${i}, 'time', this.value)" value="${entry.time}" class="text-[10px] p-1 border rounded w-20 outline-none bg-white">
-                        <select onchange="updateIntimacyVal(${i}, 'type', this.value)" class="text-[10px] p-1 border rounded flex-1 outline-none font-bold bg-white ${entry.type==='protected'?'text-emerald-600':(entry.type==='unprotected'?'text-rose-600':'text-slate-400')}">
-                            <option value="" disabled ${entry.type===''?'selected':''}>Select Type</option>
-                            <option value="protected" ${entry.type==='protected'?'selected':''}>Protected</option>
-                            <option value="unprotected" ${entry.type==='unprotected'?'selected':''}>Unprotected</option>
+                    <div class="flex items-center gap-1.5 bg-white p-1.5 rounded border border-slate-100">
+                        <input type="time" onchange="updateIntimacyVal(${i}, 'time', this.value)" value="${entry.time}" class="text-[10px] p-1 border rounded w-16 outline-none">
+                        <select onchange="updateIntimacyVal(${i}, 'type', this.value)" class="text-[10px] p-1 border rounded flex-1 outline-none font-bold ${entry.type==='protected'?'text-emerald-600':(entry.type==='unprotected'?'text-rose-600':(entry.type==='must'?'text-amber-600':'text-slate-400'))}">
+                            <option value="" disabled ${entry.type===''?'selected':''}>Type</option>
+                            <option value="protected" ${entry.type==='protected'?'selected':''}>P</option>
+                            <option value="unprotected" ${entry.type==='unprotected'?'selected':''}>U</option>
+                            <option value="must" ${entry.type==='must'?'selected':''}>Must</option>
                         </select>
-                        <button onclick="removeIntimacyRow(${i})" class="text-slate-400 hover:text-red-500 active:scale-75 transition-transform"><i class="fa-solid fa-trash text-xs"></i></button>
+                        <select onchange="updateIntimacyVal(${i}, 'loc', this.value)" class="text-[10px] p-1 border rounded w-16 outline-none font-bold text-slate-600">
+                            <option value="HOME" ${entry.loc==='HOME'?'selected':''}>HOME</option>
+                            <option value="OUT" ${entry.loc==='OUT'?'selected':''}>OUT</option>
+                        </select>
+                        <button onclick="removeIntimacyRow(${i})" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash text-[10px]"></i></button>
                     </div>
                 `);
             });
@@ -627,30 +597,14 @@
         window.saveDailyHealthLog = () => {
             const d = document.getElementById('dailyModalDate').value;
             if(!d) return;
-
-            const locVal = document.getElementById('modalDailyLocation').value.trim();
-            if(!locVal) {
-                window.showToast("Please enter a valid Location");
-                return;
-            }
-
-            const weightVal = document.getElementById('modalDailyWeight').value;
-            if (weightVal) {
-                const w = parseFloat(weightVal);
-                if (w < 20 || w > 300) {
-                    window.showToast("Please enter valid weight (20-300)");
-                    return;
-                }
-            }
-            
-            for(let entry of currentIntimacyEntries) {
+       for(let entry of currentIntimacyEntries) {
                 if(entry.type === '') {
-                    window.showToast("Please select Protected/Unprotected");
+                    window.showToast("Please select Intimacy Type");
                     return;
                 }
             }
 
-            if(!appData.logs[d]) appData.logs[d] = { isStart: false, isBleeding: false, intimacy: [], weight: null, location: '', notes: '' };
+            if(!appData.logs[d]) appData.logs[d] = { isStart: false, isBleeding: false, intimacy: [], weight: null, notes: '' };
             
             const isStartingNow = document.getElementById('modalDailyStart').checked;
             appData.logs[d].isStart = isStartingNow;
@@ -659,15 +613,14 @@
                 const bDays = appData.settings.bleedingDays || 5;
                 for (let i = 0; i < bDays; i++) {
                     const target = addDays(d, i);
-                    if (!appData.logs[target]) appData.logs[target] = { isStart: false, isBleeding: false, intimacy: [], weight: null, location: locVal, notes: '' };
+                    if (!appData.logs[target]) appData.logs[target] = { isStart: false, isBleeding: false, intimacy: [], weight: null, location: 'IN', notes: '' };
                     appData.logs[target].isBleeding = true;
                 }
             } else {
                 appData.logs[d].isBleeding = document.getElementById('modalDailyBleeding').checked;
             }
 
-            appData.logs[d].weight = weightVal ? parseFloat(weightVal) : null;
-            appData.logs[d].location = locVal.toUpperCase();
+            appData.logs[d].weight = document.getElementById('modalDailyWeight').value ? parseFloat(document.getElementById('modalDailyWeight').value) : null;
             appData.logs[d].notes = document.getElementById('modalDailyNotes').value;
             appData.logs[d].intimacy = JSON.parse(JSON.stringify(currentIntimacyEntries));
             
@@ -775,7 +728,7 @@
                 else if (dDate > ins.fE && dDate <= addDays(ins.fE, 2)) { val = 2; col = 'var(--risk-med)'; }
                 
                 riskData.push(val); ptColors.push(col);
-                ptRadii.push(dDate === today ? 6 : 0);
+                ptRadii.push(dDate === today ? 6 : 0); // Present day point
             }
             const ctxH = document.getElementById('homeRiskChart').getContext('2d');
             homeRiskChartInst = new Chart(ctxH, {
@@ -792,6 +745,8 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false, max: 4.5 }, x: { display: false } }, plugins: { legend: { display: false }, tooltip: {enabled: false} } }
             });
         };
+      
+      
 
         window.renderGraphs = () => {
             const ins = getCycleInsights(), len = appData.settings.cycleLength;
@@ -899,21 +854,8 @@
                 let countBleeding = 0, sumWeight = 0, countWeight = 0, countIntimacy = 0;
                 const cycleLenDays = nextSDate ? diffDays(sDate, nextSDate) : diffDays(sDate, formatYMD(new Date())) + 1;
                 
-                const cycleOvu = addDays(sDate, cycleLenDays > 20 ? cycleLenDays - 14 : 14);
+             const cycleOvu = addDays(sDate, cycleLenDays > 20 ? cycleLenDays - 14 : 14);
                 const cFs = addDays(cycleOvu, -5), cFe = addDays(cycleOvu, 1);
-                let cRiskData = [], cPtColors = [], cLbls = [];
-                const graphLen = nextSDate ? cycleLenDays : appData.settings.cycleLength;
-
-                for(let j=0; j<graphLen; j++) {
-                    const dDate = addDays(sDate, j);
-                    cLbls.push(j+1);
-                    let val = 1, col = '#10B981';
-                    if (j <= appData.settings.bleedingDays || appData.logs[dDate]?.isBleeding) col = '#EF4444';
-                    else if (dDate >= cFs && dDate <= cFe) { val = dDate === cycleOvu ? 4 : 3; col = dDate === cycleOvu ? '#9333EA' : '#EF4444'; }
-                    else if (dDate > cFe && dDate <= addDays(cFe, 2)) { val = 2; col = '#F59E0B'; }
-                    cRiskData.push(val); cPtColors.push(col);
-                }
-                cycleChartConfigs.push({ id: `cycleChart_${i}`, labels: cLbls, data: cRiskData, colors: cPtColors });
 
                 let allDates = [];
                 for(let j=0; j<cycleLenDays; j++) allDates.push(addDays(sDate, j));
@@ -932,11 +874,6 @@
                     <div class="cycle-report-header flex justify-between items-center text-xs p-3">
                         <span class="font-bold text-slate-700"><i class="fa-solid fa-rotate-left text-emerald-500 mr-1"></i> Cycle: ${labelPeriod} (${cycleLenDays} Days)</span>
                     </div>
-                    
-                    <div class="px-3 py-2 border-b border-slate-200">
-                        <p class="text-[9px] font-bold uppercase text-slate-500 mb-1">Cycle Risk Graph</p>
-                        <div class="w-full h-[80px] relative"><canvas id="cycleChart_${i}"></canvas></div>
-                    </div>
 
                     <div class="summary-grid bg-slate-50 border-b border-slate-200 grid grid-cols-3 divide-x divide-slate-200 text-center py-2">
                         <div><span class="block text-[8px] text-slate-400 uppercase font-bold">Bleeding</span><strong class="text-xs text-rose-600">${countBleeding} Days</strong></div>
@@ -945,15 +882,21 @@
                     </div>
                     <div class="overflow-x-auto p-0">
                         <table class="w-full text-[9px] text-left leading-tight">
-                            <thead><tr class="text-slate-500 bg-slate-100 border-b border-slate-200"><th class="p-1.5">Date</th><th class="p-1.5">Status</th><th class="p-1.5">Location</th><th class="p-1.5">Intimacy</th><th class="p-1.5">Notes & Wt</th></tr></thead>
+                           <thead><tr class="text-slate-500 bg-slate-100 border-b border-slate-200"><th class="p-1.5">Date</th><th class="p-1.5">Status</th><th class="p-1.5">Intimacy Log</th><th class="p-1.5">Notes & Wt</th></tr></thead>
                             <tbody class="text-slate-700 font-medium">`;
 
-                allDates.forEach(d => {
+               allDates.forEach(d => {
                     const l = appData.logs[d] || {};
                     
-                    let sts = [];
-                    if(l.isStart) sts.push('<span class="bg-rose-100 text-rose-700 px-1 rounded">Start</span>');
-                    if(l.isBleeding) sts.push('<i class="fa-solid fa-droplet text-rose-600 text-xs" title="Bleeding"></i>');
+                    let dotColor = '#10B981';
+                    let dayIdx = diffDays(sDate, d);
+                    if (dayIdx < appData.settings.bleedingDays || l.isBleeding) dotColor = '#EF4444';
+                    else if (d >= cFs && d <= cFe) dotColor = d === cycleOvu ? '#9333EA' : '#EF4444';
+                    else if (d > cFe && d <= addDays(cFe, 2)) dotColor = '#F59E0B';
+
+                   let sts = [];
+                    sts.push(`<span class="inline-block w-2.5 h-2.5 rounded-full shadow-sm" style="background-color: ${dotColor};"></span>`);
+                    if(l.isBleeding) sts.push('<i class="fa-solid fa-droplet text-rose-600 text-[10px]" title="Bleeding"></i>');
                     
                     let wtBadge = l.weight ? `<span class="text-sky-600 font-bold">${l.weight}kg</span>` : '';
                     let notesTxt = l.notes ? l.notes : '';
@@ -961,62 +904,34 @@
                     if(!combinedNotes) combinedNotes = '-';
                     
                     let intHTML = '-';
-                  if(l.intimacy && l.intimacy.length > 0) {
+                 if(l.intimacy && l.intimacy.length > 0) {
                         intHTML = l.intimacy.map(int => {
                             let timeStr = int.time ? `(${int.time})` : '';
-                            if(int.type === 'protected') return `<span class="text-emerald-600 whitespace-nowrap">P ${timeStr}</span>`;
-                            return `<span class="text-rose-600 whitespace-nowrap">U ${timeStr}</span>`;
+                            let locStr = int.loc ? `[${int.loc}]` : '[HOME]';
+                            if(int.type === 'protected') return `<span class="text-emerald-600 whitespace-nowrap">P ${timeStr} ${locStr}</span>`;
+                            if(int.type === 'unprotected') return `<span class="text-rose-600 whitespace-nowrap">U ${timeStr} ${locStr}</span>`;
+                            if(int.type === 'must') return `<span class="text-amber-600 whitespace-nowrap">Must ${timeStr} ${locStr}</span>`;
+                            return '';
                         }).join('<span class="mx-1.5 text-slate-300">|</span>');
                     }
-
-                    let locBadge = l.location ? l.location : '';
-                    if(!locBadge) locBadge = '-';
 
                     let statusStr = sts.length ? sts.join(' ') : '-';
 
                     html += `<tr class="border-b border-slate-100 hover:bg-slate-50">
                         <td class="p-1.5 font-bold whitespace-nowrap">${formatDDMMYYYY(d)}</td>
                         <td class="p-1.5 flex gap-1 items-center">${statusStr}</td>
-                        <td class="p-1.5 font-bold uppercase text-[8px]">${locBadge}</td>
-                        <td class="p-1.5">${intHTML}</td>
+                        <td class="p-1.5 text-[9px]">${intHTML}</td>
                         <td class="p-1.5 text-[8px] text-slate-500">${combinedNotes}</td>
                     </tr>`;
                 });
-                
-                html += `</tbody></table></div></div>`;
+             html += `</tbody></table></div></div>`;
                 container.insertAdjacentHTML('beforeend', html);
             }
-
-            setTimeout(() => {
-                cycleChartConfigs.forEach(config => {
-                    const canvas = document.getElementById(config.id);
-                    if(canvas) {
-                        new Chart(canvas.getContext('2d'), {
-                            type: 'line',
-                            data: { 
-                                labels: config.labels, 
-                                datasets: [{ 
-                                    data: config.data, 
-                                    segment: { borderColor: ctx => config.colors[ctx.p1DataIndex] }, 
-                                    backgroundColor: 'rgba(0,0,0,0.02)', tension: 0.4, fill: true, pointRadius: 0 
-                                }] 
-                            },
-                            options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false, max: 4.5 }, x: { display: false } }, plugins: { legend: { display: false } } }
-                        });
-                    }
-                });
-            }, 100);
         };
         window.onload = window.loadSavedDatabase;
     </script>
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js').catch(err => {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
-            });
-        }
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
     </script>
 </body>
 </html>
