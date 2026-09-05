@@ -904,9 +904,11 @@
                 const labelPeriod = `${formatDDMMYYYY(sDate)} to ${formatDDMMYYYY(endShowDate)}`;
                 
                 let countBleeding = 0, sumWeight = 0, countWeight = 0, countIntimacy = 0;
-                const cycleLenDays = nextSDate ? diffDays(sDate, nextSDate) : diffDays(sDate, formatYMD(new Date())) + 1;
+               const cycleLenDays = nextSDate ? diffDays(sDate, nextSDate) : diffDays(sDate, formatYMD(new Date())) + 1;
                 
-             const cycleOvu = addDays(sDate, cycleLenDays > 20 ? cycleLenDays - 14 : 14);
+                // BUG FIX: Current cycle ke liye average length ka use karein taaki Home page aur Report match ho jaye
+                const expectedCycleLen = nextSDate ? cycleLenDays : (appData.settings.cycleLength || 28);
+                const cycleOvu = addDays(sDate, expectedCycleLen > 20 ? expectedCycleLen - 14 : 14);
                 const cFs = addDays(cycleOvu, -5), cFe = addDays(cycleOvu, 1);
 
                 let allDates = [];
